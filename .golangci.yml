@@ -1,0 +1,19 @@
+run:
+  timeout: 5m
+
+linters:
+  enable-all: true
+  disable:
+    - funlen
+    - varnamelen
+    - interfacer
+    - golint
+    - structcheck
+    - maligned
+    - deadcode
+    - exhaustivestruct
+    - nosnakecase
+    - ifshort
+    - scopelint
+    - varcheck
+    - depguard

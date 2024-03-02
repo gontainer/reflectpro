@@ -1,0 +1,31 @@
+name: golangci-lint
+on:
+  push:
+    tags:
+      - v*
+    branches:
+      - master
+      - main
+  pull_request:
+permissions:
+  contents: read
+  # Optional: allow read access to pull request. Use with `only-new-issues` option.
+  # pull-requests: read
+jobs:
+  golangci:
+    name: lint
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        go: [ '1.20', '1.21', '1.22' ]
+    steps:
+      - uses: actions/setup-go@v4
+        with:
+          go-version: ${{ matrix.go }}
+          cache: false
+      - uses: actions/checkout@v4
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v3
+        with:
+          version: v1.55.1
