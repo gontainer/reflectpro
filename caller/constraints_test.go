@@ -81,7 +81,7 @@ func TestConstraint(t *testing.T) {
 
 					b := book{}
 					r, err := caller.CallMethod(b, "SetTitle", []any{harryPotterTitle}, false)
-					assert.EqualError(t, err, `cannot call method (caller_test.book)."SetTitle": invalid func (caller_test.book)."SetTitle"`)
+					assert.EqualError(t, err, `cannot call method (caller_test.book)."SetTitle": (caller_test.book)."SetTitle": invalid method`)
 					assert.Nil(t, r)
 					assert.Zero(t, b)
 				})
@@ -93,7 +93,7 @@ func TestConstraint(t *testing.T) {
 
 						var b any = book{}
 						r, err := caller.CallMethod(&b, "SetTitle", []any{harryPotterTitle}, false)
-						assert.EqualError(t, err, `cannot call method (*interface {})."SetTitle": invalid func (*interface {})."SetTitle"`)
+						assert.EqualError(t, err, `cannot call method (*interface {})."SetTitle": (*interface {})."SetTitle": invalid method`)
 						assert.Nil(t, r)
 						assert.Equal(t, emptyBook, b)
 					})
@@ -216,14 +216,14 @@ func TestConstraint(t *testing.T) {
 
 				b := book{}
 				_, err := caller.CallMethod(&b, "setTitle", []any{harryPotter}, false)
-				assert.EqualError(t, err, `cannot call method (*caller_test.book)."setTitle": invalid func (*caller_test.book)."setTitle"`)
+				assert.EqualError(t, err, `cannot call method (*caller_test.book)."setTitle": (*caller_test.book)."setTitle": invalid method`)
 			})
 			t.Run("ForceCallMethod", func(t *testing.T) {
 				t.Parallel()
 
 				b := book{}
 				_, err := caller.ForceCallMethod(&b, "setTitle", []any{harryPotter}, false)
-				assert.EqualError(t, err, `cannot call method (*caller_test.book)."setTitle": invalid func (*caller_test.book)."setTitle"`)
+				assert.EqualError(t, err, `cannot call method (*caller_test.book)."setTitle": (*caller_test.book)."setTitle": invalid method`)
 			})
 		})
 	})

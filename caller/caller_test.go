@@ -512,7 +512,7 @@ func TestForceCallProviderMethod(t *testing.T) {
 				// oops... p is not a pointer, ProviderWithError requires pointer receiver
 				r, err := caller.CallProviderMethod(&p, "ProviderWithError", nil, false)
 				assert.Nil(t, r)
-				assert.EqualError(t, err, `cannot call provider (*interface {})."ProviderWithError": invalid func (*interface {})."ProviderWithError"`)
+				assert.EqualError(t, err, `cannot call provider (*interface {})."ProviderWithError": (*interface {})."ProviderWithError": invalid method`)
 			})
 		})
 	})
@@ -637,7 +637,7 @@ func TestCallWither(t *testing.T) {
 				object: person{},
 				wither: "withName",
 				params: nil,
-				error:  `cannot call wither (caller_test.person)."withName": invalid func (caller_test.person)."withName"`,
+				error:  `cannot call wither (caller_test.person)."withName": (caller_test.person)."withName": invalid method`,
 			},
 			{
 				object: person{},
@@ -773,7 +773,7 @@ func TestForceCallMethod(t *testing.T) {
 
 			var a *int
 			_, err := caller.ForceCallMethod(a, "SomeMethod", nil, false)
-			assert.EqualError(t, err, `cannot call method (*int)."SomeMethod": invalid func (*int)."SomeMethod"`)
+			assert.EqualError(t, err, `cannot call method (*int)."SomeMethod": (*int)."SomeMethod": invalid method`)
 		})
 		t.Run("Method panics", func(t *testing.T) {
 			t.Parallel()
