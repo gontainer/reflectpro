@@ -234,15 +234,10 @@ The same problem occurs without using that package:
 [ForceCallMethod] solves that problem by copying the value and creating a pointer to it using the [reflect] package,
 but that solution is slightly slower. In contrast to [CallMethod], it requires a pointer always.
 */
-//nolint:wrapcheck
 func ForceCallMethod(object any, method string, args []any, convertArgs bool) (_ []any, err error) {
-	defer func() {
-		if err != nil {
-			err = grouperror.Prefix(fmt.Sprintf("cannot call method (%T).%+q: ", object, method), err)
-		}
-	}()
-
-	return caller.ValidateAndForceCallMethod(object, method, args, convertArgs, caller.DontValidate)
+	//nolint
+	// TODO remove this func
+	return NewCallMethod(object, method, args, convertArgs)
 }
 
 /*

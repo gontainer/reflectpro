@@ -21,6 +21,7 @@
 package caller_test
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/gontainer/reflectpro/caller"
@@ -35,6 +36,16 @@ type Character struct {
 
 func (c *Character) SetName(n string) {
 	c.Name = n
+}
+
+type (
+	//nolint
+	// Deprecated: TODO remove it
+	Nuller struct{}
+)
+
+func (*Nuller) Null() {
+	fmt.Println("null") //nolint
 }
 
 func TestNewCallMethod(t *testing.T) {
@@ -104,5 +115,14 @@ func TestNewCallMethod(t *testing.T) {
 		//nolint
 		// TODO re-format errors to remove the duplication
 		require.EqualError(t, err, `cannot call method (struct {})."Do": (struct {})."Do": invalid method`)
+	})
+
+	t.Run("Nuller", func(t *testing.T) {
+		t.Parallel()
+
+		var x *Nuller
+
+		_, err := caller.NewCallMethod(x, "Null", nil, true)
+		require.NoError(t, err)
 	})
 }

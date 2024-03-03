@@ -59,6 +59,11 @@ func Method(object any, method string) (reflect.Value, error) {
 
 	for !fn.IsValid() && (obj.Kind() == reflect.Ptr || obj.Kind() == reflect.Interface) {
 		obj = obj.Elem()
+
+		if !obj.IsValid() {
+			break
+		}
+
 		fn = obj.MethodByName(method)
 	}
 
