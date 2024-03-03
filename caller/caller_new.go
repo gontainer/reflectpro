@@ -25,7 +25,7 @@ func NewCallMethod(object any, method string, args []any, convertArgs bool) (_ [
 		if errors.Is(err, caller.ErrInvalidMethod) {
 			chain, chainErr := intReflect.ValueToKindChain(reflect.ValueOf(object))
 			if chainErr == nil && chain.Prefixed(reflect.Ptr) {
-				return ForceCallMethod(object, method, args, convertArgs)
+				return caller.ValidateAndForceCallMethod(object, method, args, convertArgs, caller.DontValidate)
 			}
 		}
 
