@@ -199,7 +199,6 @@ CallMethod works similar to [Call] with the difference it calls the method by th
 		// Output: Mary
 	}
 */
-//nolint:wrapcheck
 func CallMethod(object any, method string, args []any, convertArgs bool) (_ []any, err error) {
 	return NewCallMethod(object, method, args, convertArgs)
 }
