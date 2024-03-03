@@ -81,6 +81,7 @@ func TestNewCallMethod(t *testing.T) {
 		t.Parallel()
 
 		_, err := caller.NewCallMethod(struct{}{}, "Do", nil, true)
+		//nolint
 		// TODO re-format errors to remove the duplication
 		require.EqualError(t, err, `cannot call method (struct {})."Do": (struct {})."Do": invalid method`)
 	})
