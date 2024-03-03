@@ -6,6 +6,10 @@ issues:
     - path: _test\.go
       linters:
         - exhaustruct
+    - path: _test\.go
+      text: "var-declaration: should drop .* from declaration of .*; it is the zero value"
+    - path: _test\.go
+      text: "should omit type .* from declaration.*; it will be inferred from the right-hand side"
 
 linters:
   enable-all: true
