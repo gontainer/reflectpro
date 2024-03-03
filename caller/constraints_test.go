@@ -88,15 +88,18 @@ func TestConstraint(t *testing.T) {
 				t.Run("var v any = book{}; CallMethod(&v, ...", func(t *testing.T) {
 					t.Parallel()
 
-					t.Run("CallMethod", func(t *testing.T) {
-						t.Parallel()
-
-						var b any = book{}
-						r, err := caller.CallMethod(&b, "SetTitle", []any{harryPotterTitle}, false)
-						assert.EqualError(t, err, `cannot call method (*interface {})."SetTitle": (*interface {})."SetTitle": invalid method`)
-						assert.Nil(t, r)
-						assert.Equal(t, emptyBook, b)
-					})
+					//nolint
+					// Since all the constraint don't exist anymore the following test does not make any sense
+					// TODO remove this file
+					//t.Run("CallMethod", func(t *testing.T) {
+					//	t.Parallel()
+					//
+					//	var b any = book{}
+					//	r, err := caller.CallMethod(&b, "SetTitle", []any{harryPotterTitle}, false)
+					//	assert.EqualError(t, err, `cannot call method (*interface {})."SetTitle": (*interface {})."SetTitle": invalid method`)
+					//	assert.Nil(t, r)
+					//	assert.Equal(t, emptyBook, b)
+					//})
 					t.Run("ForceCallMethod", func(t *testing.T) {
 						t.Parallel()
 

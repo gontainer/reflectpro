@@ -201,18 +201,7 @@ CallMethod works similar to [Call] with the difference it calls the method by th
 */
 //nolint:wrapcheck
 func CallMethod(object any, method string, args []any, convertArgs bool) (_ []any, err error) {
-	defer func() {
-		if err != nil {
-			err = grouperror.Prefix(fmt.Sprintf("cannot call method (%T).%+q: ", object, method), err)
-		}
-	}()
-
-	fn, err := caller.Method(object, method)
-	if err != nil {
-		return nil, err
-	}
-
-	return caller.CallFunc(fn, args, convertArgs)
+	return NewCallMethod(object, method, args, convertArgs)
 }
 
 /*
