@@ -123,6 +123,8 @@ See [ProviderError].
 */
 //nolint:wrapcheck
 func CallProvider(provider any, args []any, convertArgs bool) (any, error) { //nolint:ireturn
+	//nolint
+	// TODO add return `executed`
 	return callProvider(
 		func() (reflect.Value, error) {
 			return caller.Func(provider)
