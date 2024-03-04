@@ -30,9 +30,6 @@ import (
 	intReflect "github.com/gontainer/reflectpro/internal/reflect"
 )
 
-//nolint
-// TODO format errors
-
 func isPtr(v any) bool {
 	chain, err := intReflect.ValueToKindChain(reflect.ValueOf(v))
 
@@ -66,6 +63,8 @@ func callMethod(object any, method string, args []any, convertArgs bool, v calle
 }
 
 // NewCallMethod replace will replace [CallMethod] and [ForceCallMethod].
+//
+// Deprecated: it'll be renamed to `CallMethod`.
 func NewCallMethod(object any, method string, args []any, convertArgs bool) (_ []any, err error) {
 	return callMethod(object, method, args, convertArgs, caller.DontValidate)
 }
