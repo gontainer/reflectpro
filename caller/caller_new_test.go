@@ -91,7 +91,7 @@ func TestNewCallMethod_error(t *testing.T) {
 		require.EqualError(
 			t,
 			err,
-			`cannot call method (*caller_test.character)."SetName": arg0: value of type struct {} is not assignable to type string`,
+			`cannot call method (*caller_test.character)."SetName": arg0: value of type struct {} is not assignable to type string`, //nolint:lll
 		)
 	})
 
