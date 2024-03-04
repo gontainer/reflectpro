@@ -78,14 +78,13 @@ func NewCallProviderMethod( //nolint:ireturn
 	convertArgs bool,
 ) (
 	_ any,
+	executed bool,
 	err error,
 ) {
-	//nolint
-	// TODO different error type for internal and external errors
 	results, err := callMethod(object, method, args, convertArgs, caller.ValidatorProvider)
 	if err != nil {
 		//nolint:wrapcheck
-		return nil, grouperror.Prefix(fmt.Sprintf(providerMethodInternalErrPrefix, object, method), err)
+		return nil, false, grouperror.Prefix(fmt.Sprintf(providerMethodInternalErrPrefix, object, method), err)
 	}
 
 	var e error
@@ -99,5 +98,5 @@ func NewCallProviderMethod( //nolint:ireturn
 		e = grouperror.Prefix(providerExternalErrPrefix, newProviderError(e))
 	}
 
-	return results[0], e //nolint:wrapcheck
+	return results[0], true, e //nolint:wrapcheck
 }

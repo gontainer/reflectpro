@@ -142,7 +142,9 @@ CallProviderMethod works similar to [CallProvider], but the provider must be a m
 	tx, err := caller.CallProviderMethod(db, "Begin", nil, false)
 */
 func CallProviderMethod(object any, method string, args []any, convertArgs bool) (any, error) { //nolint:ireturn
-	return NewCallProviderMethod(object, method, args, convertArgs)
+	r, _, err := NewCallProviderMethod(object, method, args, convertArgs)
+
+	return r, err
 }
 
 // ForceCallProviderMethod is an extended version of [CallProviderMethod].
@@ -208,7 +210,7 @@ CallWither works similar to [CallMethod] with the difference the method must be 
 	}
 
 	func (p Person) WithName(n string) Person {
-	    p.Name = n
+	    p.name = n
 	    return p
 	}
 
