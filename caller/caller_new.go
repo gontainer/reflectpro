@@ -34,7 +34,16 @@ func isPtr(v any) bool {
 }
 
 //nolint:wrapcheck
-func callMethod(object any, method string, args []any, convertArgs bool, v caller.FuncValidator) (_ []any, err error) {
+func callMethod(
+	object any,
+	method string,
+	args []any,
+	convertArgs bool,
+	validator caller.FuncValidator,
+) (
+	_ []any,
+	err error,
+) {
 	defer func() {
 		if err != nil {
 			err = grouperror.Prefix(fmt.Sprintf("cannot call method (%T).%+q: ", object, method), err)
@@ -44,14 +53,14 @@ func callMethod(object any, method string, args []any, convertArgs bool, v calle
 	fn, err := caller.Method(object, method)
 	if err != nil {
 		if errors.Is(err, caller.ErrInvalidMethod) && isPtr(object) {
-			return caller.ValidateAndForceCallMethod(object, method, args, convertArgs, v)
+			return caller.ValidateAndForceCallMethod(object, method, args, convertArgs, validator)
 		}
 
 		return nil, err
 	}
 
-	if v != nil {
-		if err := v.Validate(fn); err != nil {
+	if validator != nil {
+		if err := validator.Validate(fn); err != nil {
 			return nil, err
 		}
 	}
