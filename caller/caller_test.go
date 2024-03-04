@@ -454,7 +454,7 @@ func TestCallProviderMethod(t *testing.T) {
 
 			r, err := caller.CallProviderMethod(nil, "MyProvider", nil, false)
 			assert.Nil(t, r)
-			assert.EqualError(t, err, `cannot call provider (<nil>)."MyProvider": invalid method receiver: <nil>`)
+			assert.EqualError(t, err, `cannot call provider (<nil>)."MyProvider": cannot call method (<nil>)."MyProvider": invalid method receiver: <nil>`)
 		})
 		t.Run("#2", func(t *testing.T) {
 			t.Parallel()
@@ -473,7 +473,7 @@ func TestCallProviderMethod(t *testing.T) {
 
 			r, err := caller.CallProviderMethod(&mockProvider{}, "NotProvider", nil, false)
 			assert.Nil(t, r)
-			assert.EqualError(t, err, `cannot call provider (*caller_test.mockProvider)."NotProvider": second value returned by provider must implement error interface, interface {} given`)
+			assert.EqualError(t, err, `cannot call provider (*caller_test.mockProvider)."NotProvider": cannot call method (*caller_test.mockProvider)."NotProvider": second value returned by provider must implement error interface, interface {} given`)
 		})
 	})
 }
@@ -500,33 +500,12 @@ func TestForceCallProviderMethod(t *testing.T) {
 				assert.Equal(t, "my value", r)
 				assert.NoError(t, err)
 			})
-
-			t.Run(`Without "Force" prefix`, func(t *testing.T) {
-				t.Parallel()
-
-				var p any = mockProvider{
-					fnWithError: func() (any, error) {
-						return "error value", errors.New("my error")
-					},
-				}
-				// oops... p is not a pointer, ProviderWithError requires pointer receiver
-				r, err := caller.CallProviderMethod(&p, "ProviderWithError", nil, false)
-				assert.Nil(t, r)
-				assert.EqualError(t, err, `cannot call provider (*interface {})."ProviderWithError": (*interface {})."ProviderWithError": invalid method`)
-			})
 		})
 	})
 	t.Run("Errors", func(t *testing.T) {
 		t.Parallel()
 
 		t.Run("#1", func(t *testing.T) {
-			t.Parallel()
-
-			r, err := caller.ForceCallProviderMethod(nil, "MyProvider", nil, false)
-			assert.Nil(t, r)
-			assert.EqualError(t, err, `cannot call provider (<nil>)."MyProvider": expected ptr, <nil> given`)
-		})
-		t.Run("#2", func(t *testing.T) {
 			t.Parallel()
 
 			p := mockProvider{
@@ -541,13 +520,13 @@ func TestForceCallProviderMethod(t *testing.T) {
 			require.True(t, errors.As(err, &providerErr))
 			assert.EqualError(t, providerErr, "my error in provider")
 		})
-		t.Run("#3", func(t *testing.T) {
+		t.Run("#2", func(t *testing.T) {
 			t.Parallel()
 
 			var p any = mockProvider{}
 			r, err := caller.ForceCallProviderMethod(&p, "NotProvider", nil, false)
 			assert.Nil(t, r)
-			assert.EqualError(t, err, `cannot call provider (*interface {})."NotProvider": second value returned by provider must implement error interface, interface {} given`)
+			assert.EqualError(t, err, `cannot call provider (*interface {})."NotProvider": cannot call method (*interface {})."NotProvider": second value returned by provider must implement error interface, interface {} given`)
 		})
 	})
 }

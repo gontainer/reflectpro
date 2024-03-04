@@ -30,10 +30,17 @@ import (
 	intReflect "github.com/gontainer/reflectpro/internal/reflect"
 )
 
-// NewCallMethod replace will replace [CallMethod] and [ForceCallMethod].
-//
+//nolint
+// TODO format errors
+
+func isPtr(v any) bool {
+	chain, err := intReflect.ValueToKindChain(reflect.ValueOf(v))
+
+	return err == nil && chain.Prefixed(reflect.Ptr)
+}
+
 //nolint:wrapcheck
-func NewCallMethod(object any, method string, args []any, convertArgs bool) (_ []any, err error) {
+func callMethod(object any, method string, args []any, convertArgs bool, v caller.FuncValidator) (_ []any, err error) {
 	defer func() {
 		if err != nil {
 			err = grouperror.Prefix(fmt.Sprintf("cannot call method (%T).%+q: ", object, method), err)
@@ -42,15 +49,55 @@ func NewCallMethod(object any, method string, args []any, convertArgs bool) (_ [
 
 	fn, err := caller.Method(object, method)
 	if err != nil {
-		if errors.Is(err, caller.ErrInvalidMethod) {
-			chain, chainErr := intReflect.ValueToKindChain(reflect.ValueOf(object))
-			if chainErr == nil && chain.Prefixed(reflect.Ptr) {
-				return caller.ValidateAndForceCallMethod(object, method, args, convertArgs, caller.DontValidate)
-			}
+		if errors.Is(err, caller.ErrInvalidMethod) && isPtr(object) {
+			return caller.ValidateAndForceCallMethod(object, method, args, convertArgs, v)
 		}
 
 		return nil, err
 	}
 
+	if v != nil {
+		if err := v.Validate(fn); err != nil {
+			return nil, err
+		}
+	}
+
 	return caller.CallFunc(fn, args, convertArgs)
+}
+
+// NewCallMethod replace will replace [CallMethod] and [ForceCallMethod].
+func NewCallMethod(object any, method string, args []any, convertArgs bool) (_ []any, err error) {
+	return callMethod(object, method, args, convertArgs, caller.DontValidate)
+}
+
+// NewCallProviderMethod will replace [CallProviderMethod] and [ForceCallProviderMethod].
+func NewCallProviderMethod( //nolint:ireturn
+	object any,
+	method string,
+	args []any,
+	convertArgs bool,
+) (
+	_ any,
+	err error,
+) {
+	//nolint
+	// TODO different error type for internal and external errors
+	results, err := callMethod(object, method, args, convertArgs, caller.ValidatorProvider)
+	if err != nil {
+		//nolint:wrapcheck
+		return nil, grouperror.Prefix(fmt.Sprintf(providerMethodInternalErrPrefix, object, method), err)
+	}
+
+	var e error
+
+	if len(results) > 1 {
+		// do not panic when results[1] == nil
+		e, _ = results[1].(error)
+	}
+
+	if e != nil {
+		e = grouperror.Prefix(providerExternalErrPrefix, newProviderError(e))
+	}
+
+	return results[0], e //nolint:wrapcheck
 }

@@ -141,44 +141,16 @@ CallProviderMethod works similar to [CallProvider], but the provider must be a m
 	db, _ := sql.Open("mysql", "user:password@/dbname")
 	tx, err := caller.CallProviderMethod(db, "Begin", nil, false)
 */
-//nolint:wrapcheck
 func CallProviderMethod(object any, method string, args []any, convertArgs bool) (any, error) { //nolint:ireturn
-	return callProvider(
-		func() (reflect.Value, error) {
-			return caller.Method(object, method)
-		},
-		args,
-		convertArgs,
-		func() string {
-			return fmt.Sprintf(providerMethodInternalErrPrefix, object, method)
-		},
-	)
+	return NewCallProviderMethod(object, method, args, convertArgs)
 }
 
 // ForceCallProviderMethod is an extended version of [CallProviderMethod].
 // See [ForceCallMethod].
 //
-//nolint:wrapcheck
+// Deprecated.
 func ForceCallProviderMethod(object any, method string, args []any, convertArgs bool) (any, error) { //nolint:ireturn
-	results, err := caller.ValidateAndForceCallMethod(object, method, args, convertArgs, caller.ValidatorProvider)
-	if err != nil {
-		return nil, grouperror.Prefix(fmt.Sprintf(providerMethodInternalErrPrefix, object, method), err)
-	}
-
-	r := results[0]
-
-	var e error
-
-	if len(results) > 1 {
-		// do not panic when results[1] == nil
-		e, _ = results[1].(error)
-	}
-
-	if e != nil {
-		e = grouperror.Prefix(providerExternalErrPrefix, newProviderError(e))
-	}
-
-	return r, e
+	return CallProviderMethod(object, method, args, convertArgs)
 }
 
 /*
