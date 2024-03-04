@@ -21,7 +21,6 @@
 package caller_test
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/gontainer/reflectpro/caller"
@@ -30,99 +29,195 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-type Character struct {
-	Name string
+type character struct {
+	name string
 }
 
-func (c *Character) SetName(n string) {
-	c.Name = n
+func (c *character) SetName(n string) {
+	c.name = n
 }
 
-type (
-	//nolint
-	// Deprecated: TODO remove it
-	Nuller struct{}
-)
-
-func (*Nuller) Null() {
-	fmt.Println("null") //nolint
+func (c character) GetName() string {
+	return c.name
 }
 
-func TestNewCallMethod(t *testing.T) {
+type Caller struct{}
+
+func (*Caller) Call(fn func()) {
+	fn()
+}
+
+func TestNewCallMethod_error(t *testing.T) {
 	t.Parallel()
 
-	t.Run("No pointer", func(t *testing.T) {
+	t.Run("No pointer, expected pointer receiver", func(t *testing.T) {
 		t.Parallel()
 
-		c := Character{}
+		c := character{}
 		_, err := caller.NewCallMethod(c, "SetName", []any{"Thor"}, true)
 		require.EqualError(
 			t,
 			err,
-			`cannot call method (caller_test.Character)."SetName": (caller_test.Character)."SetName": invalid method`,
+			`cannot call method (caller_test.character)."SetName": (caller_test.character)."SetName": invalid method`,
 		)
-		assert.Empty(t, c.Name)
+		assert.Empty(t, c.name)
 	})
+
+	t.Run("Invalid method", func(t *testing.T) {
+		t.Parallel()
+
+		object := &struct{}{}
+		_, err := caller.NewCallMethod(&object, "Do", nil, true)
+		require.EqualError(t, err, `cannot call method (**struct {})."Do": (*struct {})."Do": invalid method`)
+	})
+
+	t.Run("Cannot convert args", func(t *testing.T) {
+		t.Parallel()
+
+		c := character{}
+		_, err := caller.NewCallMethod(&c, "SetName", []any{struct{}{}}, true)
+		require.EqualError(
+			t,
+			err,
+			`cannot call method (*caller_test.character)."SetName": arg0: cannot convert struct {} to string`,
+		)
+	})
+
+	t.Run("Not assignable args", func(t *testing.T) {
+		t.Parallel()
+
+		c := character{}
+		_, err := caller.NewCallMethod(&c, "SetName", []any{struct{}{}}, false)
+		require.EqualError(
+			t,
+			err,
+			`cannot call method (*caller_test.character)."SetName": arg0: value of type struct {} is not assignable to type string`,
+		)
+	})
+
+	t.Run("Too many input arguments", func(t *testing.T) {
+		t.Parallel()
+
+		c := character{}
+		_, err := caller.NewCallMethod(&c, "SetName", []any{"Bernhard", "Riemann"}, false)
+		require.EqualError(
+			t,
+			err,
+			`cannot call method (*caller_test.character)."SetName": too many input arguments`,
+		)
+	})
+
+	t.Run("Not enough input arguments", func(t *testing.T) {
+		t.Parallel()
+
+		c := character{}
+		_, err := caller.NewCallMethod(&c, "SetName", []any{}, false)
+		require.EqualError(
+			t,
+			err,
+			`cannot call method (*caller_test.character)."SetName": not enough input arguments`,
+		)
+	})
+}
+
+func TestNewCallMethod_okPointer(t *testing.T) {
+	t.Parallel()
 
 	t.Run("Pointer", func(t *testing.T) {
 		t.Parallel()
 
-		c := Character{}
+		c := character{}
 		_, err := caller.NewCallMethod(&c, "SetName", []any{"Thor"}, true)
 		require.NoError(t, err)
-		assert.Equal(t, c.Name, "Thor")
+		assert.Equal(t, c.name, "Thor")
 	})
 
-	t.Run("var c any = &Character{}; caller.NewCallMethod(&c", func(t *testing.T) {
+	t.Run("Pointer #2", func(t *testing.T) {
 		t.Parallel()
 
-		var c any = &Character{}
+		c := &character{}
+		_, err := caller.NewCallMethod(c, "SetName", []any{"Thor"}, true)
+		require.NoError(t, err)
+		assert.Equal(t, c.name, "Thor")
+	})
+
+	t.Run("Pointer to pointer", func(t *testing.T) {
+		t.Parallel()
+
+		c := &character{}
+		_, err := caller.NewCallMethod(&c, "SetName", []any{"Thor"}, true)
+		require.NoError(t, err)
+		assert.Equal(t, c.name, "Thor")
+	})
+
+	t.Run("Pointer to pointer to pointer", func(t *testing.T) {
+		t.Parallel()
+
+		tmp := &character{}
+		c := &tmp
 
 		_, err := caller.NewCallMethod(&c, "SetName", []any{"Thor"}, true)
 		require.NoError(t, err)
-		actual, _ := getter.Get(c, "Name")
+		actual, _ := getter.Get(c, "name")
 		assert.Equal(t, actual, "Thor")
 	})
 
-	t.Run("var c = Character{}; caller.NewCallMethod(&c", func(t *testing.T) {
+	t.Run("Pointer to any", func(t *testing.T) {
 		t.Parallel()
 
-		var c any = Character{}
+		var c any = character{}
 
 		_, err := caller.NewCallMethod(&c, "SetName", []any{"Thor"}, true)
 		require.NoError(t, err)
-		actual, _ := getter.Get(c, "Name")
+		actual, _ := getter.Get(c, "name")
 		assert.Equal(t, actual, "Thor")
 	})
 
-	t.Run("var c = Character{}; var d any = &c; caller.NewCallMethod(&d", func(t *testing.T) {
+	t.Run("Pointer to any over pointer", func(t *testing.T) {
 		t.Parallel()
 
-		var c any = Character{}
+		var c any = &character{}
 
-		var d any = &c
-
-		_, err := caller.NewCallMethod(d, "SetName", []any{"Thor"}, true)
+		_, err := caller.NewCallMethod(&c, "SetName", []any{"Thor"}, true)
 		require.NoError(t, err)
-		actual, _ := getter.Get(c, "Name")
+		actual, _ := getter.Get(c, "name")
 		assert.Equal(t, actual, "Thor")
 	})
 
-	t.Run("invalid method", func(t *testing.T) {
+	t.Run("Any over pointer", func(t *testing.T) {
 		t.Parallel()
 
-		_, err := caller.NewCallMethod(struct{}{}, "Do", nil, true)
-		//nolint
-		// TODO re-format errors to remove the duplication
-		require.EqualError(t, err, `cannot call method (struct {})."Do": (struct {})."Do": invalid method`)
+		var c any = &character{}
+
+		_, err := caller.NewCallMethod(c, "SetName", []any{"Thor"}, true)
+		require.NoError(t, err)
+		actual, _ := getter.Get(c, "name")
+		assert.Equal(t, actual, "Thor")
 	})
 
-	t.Run("Nuller", func(t *testing.T) {
+	// Golang allows for executing methods over nil-receivers.
+	t.Run("Nil pointer", func(t *testing.T) {
 		t.Parallel()
 
-		var x *Nuller
+		var (
+			c        *Caller
+			executed = false
+			arg      = func() {
+				executed = true
+			}
+		)
 
-		_, err := caller.NewCallMethod(x, "Null", nil, true)
+		_, err := caller.NewCallMethod(c, "Call", []any{arg}, false)
 		require.NoError(t, err)
+		assert.True(t, executed)
+	})
+
+	t.Run("Getter", func(t *testing.T) {
+		t.Parallel()
+
+		c := character{name: "Thor"}
+		r, err := caller.NewCallMethod(c, "GetName", nil, false)
+		require.NoError(t, err)
+		assert.Equal(t, []any{"Thor"}, r)
 	})
 }
