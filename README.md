@@ -6,4 +6,4 @@
 
 # Reflectpro
 
-Simple and elegant [callers](caller), [copiers](copier), [getters](getter) and [setters](setter).
+Simple, elegant, and intuitive [callers](caller), [copiers](copier), [getters](getter) and [setters](setter).
