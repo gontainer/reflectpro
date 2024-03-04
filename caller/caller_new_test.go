@@ -212,11 +212,20 @@ func TestNewCallMethod_okPointer(t *testing.T) {
 		assert.True(t, executed)
 	})
 
-	t.Run("Getter", func(t *testing.T) {
+	t.Run("Getter over value", func(t *testing.T) {
 		t.Parallel()
 
 		c := character{name: "Thor"}
 		r, err := caller.NewCallMethod(c, "GetName", nil, false)
+		require.NoError(t, err)
+		assert.Equal(t, []any{"Thor"}, r)
+	})
+
+	t.Run("Getter over pointer", func(t *testing.T) {
+		t.Parallel()
+
+		c := character{name: "Thor"}
+		r, err := caller.NewCallMethod(&c, "GetName", nil, false)
 		require.NoError(t, err)
 		assert.Equal(t, []any{"Thor"}, r)
 	})
