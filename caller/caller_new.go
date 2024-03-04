@@ -70,6 +70,8 @@ func NewCallMethod(object any, method string, args []any, convertArgs bool) (_ [
 }
 
 // NewCallProviderMethod will replace [CallProviderMethod] and [ForceCallProviderMethod].
+//
+// Deprecated: it'll be renamed to `CallProviderMethod`.
 func NewCallProviderMethod( //nolint:ireturn
 	object any,
 	method string,
@@ -98,4 +100,22 @@ func NewCallProviderMethod( //nolint:ireturn
 	}
 
 	return results[0], true, e //nolint:wrapcheck
+}
+
+// NewCallWither will replace [CallWither] and [ForceCallWither].
+//
+// Deprecated: it'll be renamed to `CallWither`.
+func NewCallWither( //nolint:ireturn
+	object any,
+	wither string,
+	args []any,
+	convertArgs bool,
+) (
+	_ any,
+	executed bool,
+	err error,
+) {
+	_, _, _, _ = object, wither, args, convertArgs //nolint
+
+	panic("TODO")
 }
