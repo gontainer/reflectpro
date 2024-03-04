@@ -166,6 +166,10 @@ func ValidateAndForceCallMethod(
 	}
 
 	if len(chain) == 3 && chain.Prefixed(reflect.Ptr, reflect.Interface) {
+		if chain[2] == reflect.Invalid {
+			return nil, errors.New("invalid object")
+		}
+
 		cp := reflect.New(val.Elem().Elem().Type())
 		cp.Elem().Set(val.Elem().Elem())
 

@@ -118,6 +118,14 @@ func TestNewCallMethod_error(t *testing.T) {
 			`cannot call method (*caller_test.character)."SetName": not enough input arguments`,
 		)
 	})
+
+	t.Run("Pointer to any(nil)", func(t *testing.T) {
+		t.Parallel()
+
+		var c any
+		_, err := caller.NewCallMethod(&c, "Do", nil, true)
+		require.EqualError(t, err, `cannot call method (*interface {})."Do": invalid object`)
+	})
 }
 
 func TestNewCallMethod_okPointer(t *testing.T) {
