@@ -27,13 +27,10 @@ import (
 
 	"github.com/gontainer/grouperror"
 	"github.com/gontainer/reflectpro/caller/internal/caller"
-	intReflect "github.com/gontainer/reflectpro/internal/reflect"
 )
 
 func isPtr(v any) bool {
-	chain, err := intReflect.ValueToKindChain(reflect.ValueOf(v))
-
-	return err == nil && chain.Prefixed(reflect.Ptr)
+	return reflect.ValueOf(v).Kind() == reflect.Ptr
 }
 
 //nolint:wrapcheck
