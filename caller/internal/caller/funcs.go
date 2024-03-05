@@ -74,7 +74,7 @@ func Method(object any, method string) (reflect.Value, error) {
 	return fn, nil
 }
 
-func MethodByName(val reflect.Value, method string) (reflect.Value, error) {
+func MethodByReflect(val reflect.Value, method string) (reflect.Value, error) {
 	fn := val.MethodByName(method)
 	if !fn.IsValid() {
 		return reflect.Value{}, fmt.Errorf(invalidMethodErr, val.Interface(), method, ErrInvalidMethod)

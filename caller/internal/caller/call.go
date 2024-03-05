@@ -171,7 +171,7 @@ func validateAndForceCallMethod(
 	}
 
 	if len(chain) == 2 && chain.Prefixed(reflect.Ptr) {
-		fn, err := MethodByName(val, method)
+		fn, err := MethodByReflect(val, method)
 		if err != nil {
 			return nil, err
 		}
@@ -187,7 +187,7 @@ func validateAndForceCallMethod(
 		cp := reflect.New(val.Elem().Elem().Type())
 		cp.Elem().Set(val.Elem().Elem())
 
-		fn, err := MethodByName(cp, method)
+		fn, err := MethodByReflect(cp, method)
 		if err != nil {
 			return nil, err
 		}
