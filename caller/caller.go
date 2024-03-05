@@ -127,14 +127,6 @@ func CallProviderMethod(object any, method string, args []any, convertArgs bool)
 	return r, err
 }
 
-// ForceCallProviderMethod is an extended version of [CallProviderMethod].
-// See [ForceCallMethod].
-//
-// Deprecated.
-func ForceCallProviderMethod(object any, method string, args []any, convertArgs bool) (any, error) { //nolint:ireturn
-	return CallProviderMethod(object, method, args, convertArgs)
-}
-
 /*
 CallMethod works similar to [Call] with the difference it calls the method by the name over the given receiver.
 

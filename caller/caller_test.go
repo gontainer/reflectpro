@@ -478,59 +478,6 @@ func TestCallProviderMethod(t *testing.T) {
 	})
 }
 
-func TestForceCallProviderMethod(t *testing.T) {
-	t.Parallel()
-
-	t.Run("OK", func(t *testing.T) {
-		t.Parallel()
-
-		t.Run("#1", func(t *testing.T) {
-			t.Parallel()
-
-			t.Run(`With "Force" prefix`, func(t *testing.T) {
-				t.Parallel()
-
-				var p any = mockProvider{
-					fn: func() any {
-						return "my value"
-					},
-				}
-				// p is not a pointer, Provider requires pointer receiver, but this function can handle that
-				r, err := caller.ForceCallProviderMethod(&p, "Provider", nil, false)
-				assert.Equal(t, "my value", r)
-				assert.NoError(t, err)
-			})
-		})
-	})
-	t.Run("Errors", func(t *testing.T) {
-		t.Parallel()
-
-		t.Run("#1", func(t *testing.T) {
-			t.Parallel()
-
-			p := mockProvider{
-				fnWithError: func() (any, error) {
-					return "my error value", errors.New("my error in provider")
-				},
-			}
-			r, err := caller.ForceCallProviderMethod(&p, "ProviderWithError", nil, false)
-			assert.Equal(t, "my error value", r)
-			assert.EqualError(t, err, "provider returned error: my error in provider")
-			var providerErr *caller.ProviderError
-			require.True(t, errors.As(err, &providerErr))
-			assert.EqualError(t, providerErr, "my error in provider")
-		})
-		t.Run("#2", func(t *testing.T) {
-			t.Parallel()
-
-			var p any = mockProvider{}
-			r, err := caller.ForceCallProviderMethod(&p, "NotProvider", nil, false)
-			assert.Nil(t, r)
-			assert.EqualError(t, err, `cannot call provider (*interface {})."NotProvider": cannot call method (*interface {})."NotProvider": second value returned by provider must implement error interface, interface {} given`)
-		})
-	})
-}
-
 func TestCallMethod(t *testing.T) {
 	t.Parallel()
 
