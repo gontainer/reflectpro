@@ -283,8 +283,9 @@ func TestCallProvider(t *testing.T) {
 			t.Run(fmt.Sprintf("Scenario #%d", i), func(t *testing.T) {
 				t.Parallel()
 
-				r, err := caller.CallProvider(s.provider, s.params, false)
-				assert.NoError(t, err)
+				r, executed, err := caller.CallProvider(s.provider, s.params, false)
+				require.NoError(t, err)
+				assert.True(t, executed)
 				assert.Equal(t, s.expected, r)
 			})
 		}
@@ -299,8 +300,9 @@ func TestCallProvider(t *testing.T) {
 		p := func() (any, error) {
 			return nil, &myError{errors.New("my error")}
 		}
-		_, err := caller.CallProvider(p, nil, false)
+		_, executed, err := caller.CallProvider(p, nil, false)
 		require.EqualError(t, err, "provider returned error: my error")
+		assert.True(t, executed)
 
 		var providerErr *caller.ProviderError
 		require.True(t, errors.As(err, &providerErr))
@@ -317,48 +319,56 @@ func TestCallProvider(t *testing.T) {
 		scenarios := []struct {
 			provider any
 			params   []any
+			executed bool
 			err      string
 		}{
 			{
 				provider: func() {},
+				executed: false,
 				err:      "cannot call provider func(): provider must return 1 or 2 values, given function returns 0 values",
 			},
 			{
 				provider: func() (any, any, any) {
 					return nil, nil, nil
 				},
-				err: "cannot call provider func() (interface {}, interface {}, interface {}): provider must return 1 or 2 values, given function returns 3 values",
+				executed: false,
+				err:      "cannot call provider func() (interface {}, interface {}, interface {}): provider must return 1 or 2 values, given function returns 3 values",
 			},
 			{
 				provider: func() (any, any) {
 					return nil, nil
 				},
-				err: "cannot call provider func() (interface {}, interface {}): second value returned by provider must implement error interface, interface {} given",
+				executed: false,
+				err:      "cannot call provider func() (interface {}, interface {}): second value returned by provider must implement error interface, interface {} given",
 			},
 			{
 				provider: func() (any, int) {
 					return nil, 0
 				},
-				err: "cannot call provider func() (interface {}, int): second value returned by provider must implement error interface, int given",
+				executed: false,
+				err:      "cannot call provider func() (interface {}, int): second value returned by provider must implement error interface, int given",
 			},
 			{
 				provider: func() (any, Person) {
 					return nil, Person{}
 				},
-				err: "cannot call provider func() (interface {}, caller_test.Person): second value returned by provider must implement error interface, caller_test.Person given",
+				executed: false,
+				err:      "cannot call provider func() (interface {}, caller_test.Person): second value returned by provider must implement error interface, caller_test.Person given",
 			},
 			{
 				provider: func() (any, error) {
 					return nil, errors.New("test error")
 				},
-				err: "provider returned error: test error",
+				executed: true,
+				err:      "provider returned error: test error",
 			},
 			{
 				provider: func() any {
 					return nil
 				},
-				params: []any{1, 2, 3},
-				err:    "cannot call provider func() interface {}: too many input arguments",
+				params:   []any{1, 2, 3},
+				executed: false,
+				err:      "cannot call provider func() interface {}: too many input arguments",
 			},
 		}
 
@@ -367,9 +377,10 @@ func TestCallProvider(t *testing.T) {
 			t.Run(fmt.Sprintf("Scenario #%d", i), func(t *testing.T) {
 				t.Parallel()
 
-				r, err := caller.CallProvider(s.provider, s.params, false)
+				r, executed, err := caller.CallProvider(s.provider, s.params, false)
+				require.EqualError(t, err, s.err)
+				assert.Equal(t, s.executed, executed)
 				assert.Nil(t, r)
-				assert.EqualError(t, err, s.err)
 			})
 		}
 	})
@@ -377,8 +388,9 @@ func TestCallProvider(t *testing.T) {
 	t.Run("Given invalid provider", func(t *testing.T) {
 		t.Parallel()
 
-		_, err := caller.CallProvider(5, nil, false)
-		assert.EqualError(t, err, "cannot call provider int: expected func, int given")
+		_, executed, err := caller.CallProvider(5, nil, false)
+		require.EqualError(t, err, "cannot call provider int: expected func, int given")
+		assert.False(t, executed)
 	})
 
 	t.Run("Given provider panics", func(t *testing.T) {
@@ -388,7 +400,7 @@ func TestCallProvider(t *testing.T) {
 			assert.Equal(t, "panic!", recover())
 		}()
 
-		_, _ = caller.CallProvider(
+		_, _, _ = caller.CallProvider(
 			func() any {
 				panic("panic!")
 			},

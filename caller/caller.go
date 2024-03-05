@@ -75,29 +75,26 @@ See [ProviderError].
 	db, err := caller.CallProvider(p, nil, false)
 */
 //nolint:wrapcheck
-func CallProvider(provider any, args []any, convertArgs bool) (_ any, err error) { //nolint:ireturn
-	executedProvider := false
+func CallProvider(provider any, args []any, convertArgs bool) (_ any, executed bool, err error) { //nolint:ireturn
 	defer func() {
-		if !executedProvider && err != nil {
+		if !executed && err != nil {
 			err = grouperror.Prefix(fmt.Sprintf(providerInternalErrPrefix, provider), err)
 		}
 	}()
 
 	fn, err := caller.Func(provider)
 	if err != nil {
-		return nil, err
+		return nil, false, err
 	}
 
 	if err := caller.ValidatorProvider.Validate(fn); err != nil {
-		return nil, err
+		return nil, false, err
 	}
 
 	results, err := caller.CallFunc(fn, args, convertArgs)
 	if err != nil {
-		return nil, err
+		return nil, false, err
 	}
-
-	executedProvider = true
 
 	r := results[0]
 
@@ -112,7 +109,7 @@ func CallProvider(provider any, args []any, convertArgs bool) (_ any, err error)
 		e = grouperror.Prefix(providerExternalErrPrefix, newProviderError(e))
 	}
 
-	return r, e
+	return r, true, e
 }
 
 /*

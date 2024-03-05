@@ -84,7 +84,7 @@ func ExampleCall_error2() {
 }
 
 func ExampleCallProvider() {
-	p, _ := caller.CallProvider(NewPerson, []any{"Mary"}, false)
+	p, _, _ := caller.CallProvider(NewPerson, []any{"Mary"}, false)
 	fmt.Printf("%+v", p)
 	// Output: &{name:Mary}
 }

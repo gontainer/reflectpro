@@ -26,6 +26,7 @@ import (
 
 	"github.com/gontainer/grouperror"
 	errAssert "github.com/gontainer/grouperror/assert"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -56,7 +57,7 @@ func TestProviderError_Unwrap(t *testing.T) {
 
 		originalErr := errors.New("my error")
 
-		_, err := CallProvider(
+		_, executed, err := CallProvider(
 			func() (any, error) {
 				return nil, originalErr
 			},
@@ -65,6 +66,7 @@ func TestProviderError_Unwrap(t *testing.T) {
 		)
 
 		require.EqualError(t, err, "provider returned error: my error")
+		assert.True(t, executed)
 		var providerErr *ProviderError
 		require.True(t, errors.As(err, &providerErr))
 		require.Same(t, originalErr, providerErr.Unwrap())
