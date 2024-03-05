@@ -21,6 +21,7 @@
 package caller_test
 
 import (
+	"database/sql"
 	"errors"
 	"fmt"
 	"strings"
@@ -28,6 +29,7 @@ import (
 
 	errAssert "github.com/gontainer/grouperror/assert"
 	"github.com/gontainer/reflectpro/caller"
+	"github.com/gontainer/reflectpro/getter"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -661,4 +663,390 @@ func (p *person) SetName(n string) {
 
 func (p *person) Empty() person {
 	return person{}
+}
+
+type character struct {
+	name string
+}
+
+func (c *character) SetName(n string) {
+	c.name = n
+}
+
+func (c character) WithName(n string) character {
+	c.name = n
+
+	return c
+}
+
+func (c character) GetName() string {
+	return c.name
+}
+
+type callerStrct struct{}
+
+func (*callerStrct) Call(fn func()) {
+	fn()
+}
+
+func TestCallMethod_error(t *testing.T) {
+	t.Parallel()
+
+	t.Run("No pointer, expected pointer receiver", func(t *testing.T) {
+		t.Parallel()
+
+		c := character{}
+		_, err := caller.CallMethod(c, "SetName", []any{"Thor"}, true)
+		require.EqualError(
+			t,
+			err,
+			`cannot call method (caller_test.character)."SetName": (caller_test.character)."SetName": invalid method`,
+		)
+		assert.Empty(t, c.name)
+	})
+
+	t.Run("Invalid method", func(t *testing.T) {
+		t.Parallel()
+
+		object := &struct{}{}
+		_, err := caller.CallMethod(&object, "Do", nil, true)
+		require.EqualError(t, err, `cannot call method (**struct {})."Do": (*struct {})."Do": invalid method`)
+	})
+
+	t.Run("Invalid method #2", func(t *testing.T) {
+		t.Parallel()
+
+		object := struct{}{}
+		_, err := caller.CallMethod(&object, "Do", nil, true)
+		require.EqualError(t, err, `cannot call method (*struct {})."Do": (*struct {})."Do": invalid method`)
+	})
+
+	t.Run("Cannot convert args", func(t *testing.T) {
+		t.Parallel()
+
+		c := character{}
+		_, err := caller.CallMethod(&c, "SetName", []any{struct{}{}}, true)
+		require.EqualError(
+			t,
+			err,
+			`cannot call method (*caller_test.character)."SetName": arg0: cannot convert struct {} to string`,
+		)
+	})
+
+	t.Run("Not assignable args", func(t *testing.T) {
+		t.Parallel()
+
+		c := character{}
+		_, err := caller.CallMethod(&c, "SetName", []any{struct{}{}}, false)
+		require.EqualError(
+			t,
+			err,
+			`cannot call method (*caller_test.character)."SetName": `+
+				`arg0: value of type struct {} is not assignable to type string`,
+		)
+	})
+
+	t.Run("Too many input arguments", func(t *testing.T) {
+		t.Parallel()
+
+		c := character{}
+		_, err := caller.CallMethod(&c, "SetName", []any{"Bernhard", "Riemann"}, false)
+		require.EqualError(
+			t,
+			err,
+			`cannot call method (*caller_test.character)."SetName": too many input arguments`,
+		)
+	})
+
+	t.Run("Not enough input arguments", func(t *testing.T) {
+		t.Parallel()
+
+		c := character{}
+		_, err := caller.CallMethod(&c, "SetName", []any{}, false)
+		require.EqualError(
+			t,
+			err,
+			`cannot call method (*caller_test.character)."SetName": not enough input arguments`,
+		)
+	})
+
+	t.Run("Pointer to any(nil)", func(t *testing.T) {
+		t.Parallel()
+
+		var c any
+		_, err := caller.CallMethod(&c, "Do", nil, true)
+		require.EqualError(t, err, `cannot call method (*interface {})."Do": invalid object`)
+	})
+}
+
+func TestCallMethod_okPointer(t *testing.T) {
+	t.Parallel()
+
+	t.Run("Pointer", func(t *testing.T) {
+		t.Parallel()
+
+		c := character{}
+		_, err := caller.CallMethod(&c, "SetName", []any{"Thor"}, true)
+		require.NoError(t, err)
+		assert.Equal(t, c.name, "Thor")
+	})
+
+	t.Run("Pointer #2", func(t *testing.T) {
+		t.Parallel()
+
+		c := &character{}
+		_, err := caller.CallMethod(c, "SetName", []any{"Thor"}, true)
+		require.NoError(t, err)
+		assert.Equal(t, c.name, "Thor")
+	})
+
+	t.Run("Pointer to pointer", func(t *testing.T) {
+		t.Parallel()
+
+		c := &character{}
+		_, err := caller.CallMethod(&c, "SetName", []any{"Thor"}, true)
+		require.NoError(t, err)
+		assert.Equal(t, c.name, "Thor")
+	})
+
+	t.Run("Pointer to pointer to pointer", func(t *testing.T) {
+		t.Parallel()
+
+		tmp := &character{}
+		c := &tmp
+
+		_, err := caller.CallMethod(&c, "SetName", []any{"Thor"}, true)
+		require.NoError(t, err)
+		actual, _ := getter.Get(c, "name")
+		assert.Equal(t, actual, "Thor")
+	})
+
+	t.Run("Pointer to pointer to pointer to pointer", func(t *testing.T) {
+		t.Parallel()
+
+		tmp := &character{}
+		tmp2 := &tmp
+		c := &tmp2
+
+		_, err := caller.CallMethod(&c, "SetName", []any{"Thor"}, true)
+		require.NoError(t, err)
+		actual, _ := getter.Get(c, "name")
+		assert.Equal(t, actual, "Thor")
+	})
+
+	t.Run("Pointer to any", func(t *testing.T) {
+		t.Parallel()
+
+		var c any = character{}
+
+		_, err := caller.CallMethod(&c, "SetName", []any{"Thor"}, true)
+		require.NoError(t, err)
+		actual, _ := getter.Get(c, "name")
+		assert.Equal(t, actual, "Thor")
+	})
+
+	t.Run("Pointer to any over pointer", func(t *testing.T) {
+		t.Parallel()
+
+		var c any = &character{}
+
+		_, err := caller.CallMethod(&c, "SetName", []any{"Thor"}, true)
+		require.NoError(t, err)
+		actual, _ := getter.Get(c, "name")
+		assert.Equal(t, actual, "Thor")
+	})
+
+	t.Run("Any over pointer", func(t *testing.T) {
+		t.Parallel()
+
+		var c any = &character{}
+
+		_, err := caller.CallMethod(c, "SetName", []any{"Thor"}, true)
+		require.NoError(t, err)
+		actual, _ := getter.Get(c, "name")
+		assert.Equal(t, actual, "Thor")
+	})
+
+	// Golang allows for executing methods over nil-receivers.
+	t.Run("Nil pointer", func(t *testing.T) {
+		t.Parallel()
+
+		var (
+			c        *callerStrct
+			executed = false
+
+			callee = func() {
+				executed = true
+			}
+		)
+
+		_, err := caller.CallMethod(c, "Call", []any{callee}, false)
+		require.NoError(t, err)
+		assert.True(t, executed)
+	})
+
+	t.Run("Getter over value", func(t *testing.T) {
+		t.Parallel()
+
+		c := character{name: "Thor"}
+		r, err := caller.CallMethod(c, "GetName", nil, false)
+		require.NoError(t, err)
+		assert.Equal(t, []any{"Thor"}, r)
+	})
+
+	t.Run("Getter over pointer", func(t *testing.T) {
+		t.Parallel()
+
+		c := character{name: "Thor"}
+		r, err := caller.CallMethod(&c, "GetName", nil, false)
+		require.NoError(t, err)
+		assert.Equal(t, []any{"Thor"}, r)
+	})
+}
+
+type provider struct {
+	fn func(...any) (any, error)
+}
+
+func (p provider) Provide(args ...any) (any, error) { //nolint:ireturn
+	return p.fn(args...)
+}
+
+func TestCallProviderMethod_ok(t *testing.T) {
+	t.Parallel()
+
+	t.Run("2+2=4", func(t *testing.T) {
+		t.Parallel()
+
+		provider := provider{
+			fn: func(args ...any) (any, error) {
+				require.Equal(t, []any{2, 2}, args)
+
+				return 4, nil
+			},
+		}
+
+		result, executed, err := caller.CallProviderMethod(provider, "Provide", []any{2, 2}, true)
+		require.NoError(t, err)
+		assert.True(t, executed)
+		assert.Equal(t, 4, result)
+	})
+}
+
+func TestCallProviderMethod_error(t *testing.T) {
+	t.Parallel()
+
+	t.Run("Not assignable args", func(t *testing.T) {
+		t.Parallel()
+
+		db := &sql.DB{}
+		result, executed, err := caller.CallProviderMethod(
+			db,
+			"BeginTx",
+			[]any{"start", nil},
+			false,
+		)
+		require.EqualError(
+			t,
+			err,
+			`cannot call provider (*sql.DB)."BeginTx": cannot call method (*sql.DB)."BeginTx": `+
+				`arg0: value of type string is not assignable to type context.Context`,
+		)
+		require.False(t, executed)
+		assert.Nil(t, result)
+	})
+
+	t.Run("Cannot convert args", func(t *testing.T) {
+		t.Parallel()
+
+		db := &sql.DB{}
+		result, executed, err := caller.CallProviderMethod(
+			db,
+			"BeginTx",
+			[]any{"start", nil},
+			true,
+		)
+		require.EqualError(
+			t,
+			err,
+			`cannot call provider (*sql.DB)."BeginTx": cannot call method (*sql.DB)."BeginTx": `+
+				`arg0: cannot convert string to context.Context`,
+		)
+		require.False(t, executed)
+		assert.Nil(t, result)
+	})
+}
+
+func TestCallWither_ok(t *testing.T) {
+	t.Parallel()
+
+	c := character{}
+	decorated, err := caller.CallWither(c, "WithName", []any{"Jane"}, false)
+	require.NoError(t, err)
+	require.Equal(
+		t,
+		character{name: "Jane"},
+		decorated,
+	)
+}
+
+func TestCallWither_errors(t *testing.T) {
+	t.Parallel()
+
+	var loop any
+	loop = &loop
+
+	scenarios := []struct {
+		name        string
+		object      any
+		wither      string
+		args        []any
+		convertArgs bool
+		error       string
+	}{
+		{
+			name:        "Loop",
+			object:      loop,
+			wither:      "Loop",
+			args:        nil,
+			convertArgs: false,
+			error:       `cannot call wither (*interface {})."Loop": cannot call method (*interface {})."Loop": unexpected pointer loop`,
+		},
+		{
+			name:        "Setter",
+			object:      &character{},
+			wither:      "SetName",
+			args:        []any{"Jane"},
+			convertArgs: false,
+			error:       `cannot call wither (*caller_test.character)."SetName": cannot call method (*caller_test.character)."SetName": wither must return 1 value, given function returns 0 values`,
+		},
+		{
+			name:        "Not assignable arguments",
+			object:      character{},
+			wither:      "WithName",
+			args:        []any{123},
+			convertArgs: false,
+			error:       `cannot call wither (caller_test.character)."WithName": cannot call method (caller_test.character)."WithName": arg0: value of type int is not assignable to type string`,
+		},
+		{
+			name:        "Cannot convert arguments",
+			object:      character{},
+			wither:      "WithName",
+			args:        []any{struct{}{}},
+			convertArgs: true,
+			error:       `cannot call wither (caller_test.character)."WithName": cannot call method (caller_test.character)."WithName": arg0: cannot convert struct {} to string`,
+		},
+	}
+
+	for _, s := range scenarios {
+		s := s
+
+		t.Run(s.name, func(t *testing.T) {
+			t.Parallel()
+
+			decorated, err := caller.CallWither(s.object, s.wither, s.args, s.convertArgs)
+			require.EqualError(t, err, s.error)
+			require.Nil(t, decorated)
+		})
+	}
 }
