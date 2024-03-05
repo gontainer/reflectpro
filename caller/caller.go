@@ -22,7 +22,6 @@ package caller
 
 import (
 	"fmt"
-	"reflect"
 
 	"github.com/gontainer/grouperror"
 	"github.com/gontainer/reflectpro/caller/internal/caller"
@@ -54,21 +53,37 @@ const (
 	providerExternalErrPrefix       = "provider returned error: "
 )
 
+/*
+CallProvider works similar to [Call] with the difference it requires a provider as the first argument.
+Provider is a function which returns 1 or 2 values.
+The second return value which is optional must be a type of error.
+See [ProviderError].
+
+	p := func() (any, error) {
+	    db, err := sql.Open("mysql", "user:password@/dbname")
+	    if err != nil {
+	         return nil, err
+	    }
+
+	    db.SetConnMaxLifetime(time.Minute * 3)
+	    db.SetMaxOpenConns(10)
+	    db.SetMaxIdleConns(10)
+
+	    return db, nil
+	}
+
+	db, err := caller.CallProvider(p, nil, false)
+*/
 //nolint:wrapcheck
-func callProvider( //nolint:ireturn
-	getFn func() (reflect.Value, error),
-	args []any,
-	convertArgs bool,
-	internalErrPrefix func() string,
-) (_ any, err error) {
+func CallProvider(provider any, args []any, convertArgs bool) (_ any, err error) { //nolint:ireturn
 	executedProvider := false
 	defer func() {
 		if !executedProvider && err != nil {
-			err = grouperror.Prefix(internalErrPrefix(), err)
+			err = grouperror.Prefix(fmt.Sprintf(providerInternalErrPrefix, provider), err)
 		}
 	}()
 
-	fn, err := getFn()
+	fn, err := caller.Func(provider)
 	if err != nil {
 		return nil, err
 	}
@@ -98,43 +113,6 @@ func callProvider( //nolint:ireturn
 	}
 
 	return r, e
-}
-
-/*
-CallProvider works similar to [Call] with the difference it requires a provider as the first argument.
-Provider is a function which returns 1 or 2 values.
-The second return value which is optional must be a type of error.
-See [ProviderError].
-
-	p := func() (any, error) {
-	    db, err := sql.Open("mysql", "user:password@/dbname")
-	    if err != nil {
-	         return nil, err
-	    }
-
-	    db.SetConnMaxLifetime(time.Minute * 3)
-	    db.SetMaxOpenConns(10)
-	    db.SetMaxIdleConns(10)
-
-	    return db, nil
-	}
-
-	db, err := caller.CallProvider(p, nil, false)
-*/
-//nolint:wrapcheck
-func CallProvider(provider any, args []any, convertArgs bool) (any, error) { //nolint:ireturn
-	//nolint
-	// TODO add return `executed`
-	return callProvider(
-		func() (reflect.Value, error) {
-			return caller.Func(provider)
-		},
-		args,
-		convertArgs,
-		func() string {
-			return fmt.Sprintf(providerInternalErrPrefix, provider)
-		},
-	)
 }
 
 /*
