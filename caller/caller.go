@@ -120,10 +120,6 @@ func CallProvider(provider any, args []any, convertArgs bool) (_ any, executed b
 /*
 CallProviderMethod works similar to [CallProvider], but the provider must be a method on the given object.
 
-See [CallProvider].
-
-See [ProviderError].
-
 	db, _ := sql.Open("mysql", "user:password@/dbname")
 	tx, _, err := caller.CallProviderMethod(db, "Begin", nil, false)
 */
