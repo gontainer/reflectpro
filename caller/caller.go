@@ -118,7 +118,16 @@ CallProviderMethod works similar to [CallProvider], but the provider must be a m
 	db, _ := sql.Open("mysql", "user:password@/dbname")
 	tx, err := caller.CallProviderMethod(db, "Begin", nil, false)
 */
-func CallProviderMethod(object any, method string, args []any, convertArgs bool) (_ any, executed bool, err error) { //nolint:ireturn
+func CallProviderMethod( //nolint:ireturn
+	object any,
+	method string,
+	args []any,
+	convertArgs bool,
+) (
+	_ any,
+	executed bool,
+	err error,
+) {
 	results, err := callMethod(object, method, args, convertArgs, caller.ValidatorProvider)
 	if err != nil {
 		//nolint:wrapcheck
