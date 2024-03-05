@@ -158,31 +158,6 @@ func CallMethod(object any, method string, args []any, convertArgs bool) (_ []an
 }
 
 /*
-ForceCallMethod is an extended version of [CallMethod].
-
-The following code cannot work:
-
-	var p any = person{}
-	caller.CallMethod(&p, "SetName", []any{"Jane"}, false)
-
-because `&p` returns a pointer to an interface, not to the `person` type.
-The same problem occurs without using that package:
-
-	var tmp any = person{}
-	p := &tmp.(person)
-	// compiler returns:
-	// invalid operation: cannot take address of tmp.(person) (comma, ok expression of type person).
-
-[ForceCallMethod] solves that problem by copying the value and creating a pointer to it using the [reflect] package,
-but that solution is slightly slower. In contrast to [CallMethod], it requires a pointer always.
-*/
-func ForceCallMethod(object any, method string, args []any, convertArgs bool) (_ []any, err error) {
-	//nolint
-	// TODO remove this func
-	return NewCallMethod(object, method, args, convertArgs)
-}
-
-/*
 CallWither works similar to [CallMethod] with the difference the method must be a wither.
 
 	type Person struct {

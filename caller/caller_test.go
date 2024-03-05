@@ -673,7 +673,6 @@ func (i ints) Append(v int) ints {
 
 type person struct {
 	name string
-	age  uint
 }
 
 func (p person) Clone() (person, error) {
@@ -698,75 +697,4 @@ func (p *person) SetName(n string) {
 
 func (p *person) Empty() person {
 	return person{}
-}
-
-type nums []int
-
-func (n *nums) Append(v int) {
-	*n = append(*n, v)
-}
-
-func TestForceCallMethod(t *testing.T) {
-	t.Parallel()
-
-	t.Run("OK", func(t *testing.T) {
-		t.Parallel()
-
-		t.Run("#1", func(t *testing.T) {
-			t.Parallel()
-
-			var p any = person{age: 28} // make sure pre-initiated values won't disappear
-			var p2 any = &p
-			var p3 = &p2
-			_, err := caller.ForceCallMethod(&p3, "SetName", []any{"Jane"}, false)
-			assert.NoError(t, err)
-			assert.Equal(t, person{age: 28, name: "Jane"}, p)
-		})
-		t.Run("OK #2", func(t *testing.T) {
-			t.Parallel()
-
-			var n any = nums{}
-			for i := 5; i < 8; i++ {
-				r, err := caller.ForceCallMethod(&n, "Append", []any{i}, false)
-				assert.NoError(t, err)
-				assert.Nil(t, r)
-			}
-			assert.Equal(t, nums{5, 6, 7}, n.(nums)) //nolint:forcetypeassert
-		})
-		t.Run("OK #3 (nil pointer receiver)", func(t *testing.T) {
-			t.Parallel()
-
-			var p1 *person
-			var p2 any = p1
-			r, err := caller.ForceCallMethod(&p2, "Empty", nil, false)
-			assert.NoError(t, err)
-			assert.Nil(t, p1)
-			assert.Equal(t, person{}, r[0])
-		})
-	})
-	t.Run("Errors", func(t *testing.T) {
-		t.Parallel()
-
-		t.Run("#1", func(t *testing.T) {
-			t.Parallel()
-
-			var a *int
-			_, err := caller.ForceCallMethod(a, "SomeMethod", nil, false)
-			assert.EqualError(t, err, `cannot call method (*int)."SomeMethod": (*int)."SomeMethod": invalid method`)
-		})
-		t.Run("Method panics", func(t *testing.T) {
-			t.Parallel()
-
-			defer func() {
-				assert.Equal(
-					t,
-					"runtime error: invalid memory address or nil pointer dereference",
-					fmt.Sprintf("%s", recover()),
-				)
-			}()
-
-			var p *person
-			_, _ = caller.ForceCallMethod(&p, "SetName", []any{"Jane"}, false)
-		})
-	})
 }
