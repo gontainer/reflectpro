@@ -36,9 +36,6 @@ func (e *callerError) Unwrap() error {
 	return e.error
 }
 
-//nolint
-// TODO change the doc comment for [ProviderError]
-
 /*
 ProviderError wraps errors returned by providers in [CallProvider].
 
@@ -50,11 +47,12 @@ ProviderError wraps errors returned by providers in [CallProvider].
 		return nil, &myError{errors.New("my error")}
 	}
 
-	_, err := caller.CallProvider(p, nil, false)
+	_, executed, err := caller.CallProvider(p, nil, false)
 	if err != nil {
-		var providerErr *caller.ProviderError
-		if errors.As(err, &providerErr) {
-			fmt.Println("provider returned error:", providerErr)
+		if executed {
+			errors.As(err, &providerErr)
+			var providerErr *caller.ProviderError
+			fmt.Println("provider returned error:", providerErr.Unwrap())
 		} else {
 			fmt.Println("provider wasn't invoked:", err)
 		}

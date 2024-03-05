@@ -43,7 +43,7 @@ Provider that does not return any error:
 		}
 	}
 
-	// httpClient, _ := caller.CallProvider(NewHttpClient, time.Minute)
+	// httpClient, _, _ := caller.CallProvider(NewHttpClient, time.Minute)
 
 Provider that may return an error:
 
@@ -60,7 +60,7 @@ Provider that may return an error:
 	    return db, nil
 	}
 
-	// db, err := caller.CallProvider(NewDB, []any{"root", "root"}, false)
+	// db, _, err := caller.CallProvider(NewDB, []any{"root", "root"}, false)
 	// if err != nil {
 	// 	panic(err)
 	// }

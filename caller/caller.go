@@ -57,6 +57,11 @@ const (
 CallProvider works similar to [Call] with the difference it requires a provider as the first argument.
 Provider is a function which returns 1 or 2 values.
 The second return value which is optional must be a type of error.
+
+Whenever it returns a non-nil error, the return "executed" informs whether the error has been returned by the provider,
+or not.
+Whenever it return a nil error, the return "executed"equals false.
+
 See [ProviderError].
 
 	p := func() (any, error) {
@@ -116,7 +121,7 @@ func CallProvider(provider any, args []any, convertArgs bool) (_ any, executed b
 CallProviderMethod works similar to [CallProvider], but the provider must be a method on the given object.
 
 	db, _ := sql.Open("mysql", "user:password@/dbname")
-	tx, err := caller.CallProviderMethod(db, "Begin", nil, false)
+	tx, _, err := caller.CallProviderMethod(db, "Begin", nil, false)
 */
 func CallProviderMethod( //nolint:ireturn
 	object any,
@@ -161,7 +166,7 @@ CallMethod works similar to [Call] with the difference it calls the method by th
 
 	func main() {
 		p := &Person{}
-		_, _ = caller.CallMethod(p, "SetName", []any{"Mary"}, false)
+		_, _, _ = caller.CallMethod(p, "SetName", []any{"Mary"}, false)
 		fmt.Println(p.name)
 		// Output: Mary
 	}
