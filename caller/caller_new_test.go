@@ -277,7 +277,7 @@ func (p provider) Provide(args ...any) (any, error) { //nolint:ireturn
 	return p.fn(args...)
 }
 
-func TestNewCallProviderMethod_ok(t *testing.T) {
+func TestCallProviderMethod_ok(t *testing.T) {
 	t.Parallel()
 
 	t.Run("2+2=4", func(t *testing.T) {
@@ -291,21 +291,21 @@ func TestNewCallProviderMethod_ok(t *testing.T) {
 			},
 		}
 
-		result, executed, err := caller.NewCallProviderMethod(provider, "Provide", []any{2, 2}, true)
+		result, executed, err := caller.CallProviderMethod(provider, "Provide", []any{2, 2}, true)
 		require.NoError(t, err)
 		assert.True(t, executed)
 		assert.Equal(t, 4, result)
 	})
 }
 
-func TestNewCallProviderMethod_error(t *testing.T) {
+func TestCallProviderMethod_error(t *testing.T) {
 	t.Parallel()
 
 	t.Run("Not assignable args", func(t *testing.T) {
 		t.Parallel()
 
 		db := &sql.DB{}
-		result, executed, err := caller.NewCallProviderMethod(
+		result, executed, err := caller.CallProviderMethod(
 			db,
 			"BeginTx",
 			[]any{"start", nil},
@@ -325,7 +325,7 @@ func TestNewCallProviderMethod_error(t *testing.T) {
 		t.Parallel()
 
 		db := &sql.DB{}
-		result, executed, err := caller.NewCallProviderMethod(
+		result, executed, err := caller.CallProviderMethod(
 			db,
 			"BeginTx",
 			[]any{"start", nil},
@@ -342,11 +342,11 @@ func TestNewCallProviderMethod_error(t *testing.T) {
 	})
 }
 
-func TestNewCallWither_ok(t *testing.T) {
+func TestCallWither_ok(t *testing.T) {
 	t.Parallel()
 
 	c := character{}
-	decorated, err := caller.NewCallWither(c, "WithName", []any{"Jane"}, false)
+	decorated, err := caller.CallWither(c, "WithName", []any{"Jane"}, false)
 	require.NoError(t, err)
 	require.Equal(
 		t,
@@ -356,7 +356,7 @@ func TestNewCallWither_ok(t *testing.T) {
 }
 
 //nolint:lll
-func TestNewCallWither_errors(t *testing.T) {
+func TestCallWither_errors(t *testing.T) {
 	t.Parallel()
 
 	var loop any
@@ -410,7 +410,7 @@ func TestNewCallWither_errors(t *testing.T) {
 		t.Run(s.name, func(t *testing.T) {
 			t.Parallel()
 
-			decorated, err := caller.NewCallWither(s.object, s.wither, s.args, s.convertArgs)
+			decorated, err := caller.CallWither(s.object, s.wither, s.args, s.convertArgs)
 			require.EqualError(t, err, s.error)
 			require.Nil(t, decorated)
 		})

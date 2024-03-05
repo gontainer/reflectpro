@@ -119,7 +119,24 @@ CallProviderMethod works similar to [CallProvider], but the provider must be a m
 	tx, err := caller.CallProviderMethod(db, "Begin", nil, false)
 */
 func CallProviderMethod(object any, method string, args []any, convertArgs bool) (_ any, executed bool, err error) { //nolint:ireturn
-	return NewCallProviderMethod(object, method, args, convertArgs)
+	results, err := callMethod(object, method, args, convertArgs, caller.ValidatorProvider)
+	if err != nil {
+		//nolint:wrapcheck
+		return nil, false, grouperror.Prefix(fmt.Sprintf(providerMethodInternalErrPrefix, object, method), err)
+	}
+
+	var e error
+
+	if len(results) > 1 {
+		// do not panic when results[1] == nil
+		e, _ = results[1].(error)
+	}
+
+	if e != nil {
+		e = grouperror.Prefix(providerExternalErrPrefix, newProviderError(e))
+	}
+
+	return results[0], true, e //nolint:wrapcheck
 }
 
 /*
@@ -163,7 +180,16 @@ CallWither works similar to [CallMethod] with the difference the method must be 
 	}
 */
 func CallWither(object any, wither string, args []any, convertArgs bool) (_ any, err error) { //nolint:ireturn
-	r, err := NewCallWither(object, wither, args, convertArgs)
+	defer func() {
+		if err != nil {
+			err = grouperror.Prefix(fmt.Sprintf("cannot call wither (%T).%+q: ", object, wither), err)
+		}
+	}()
 
-	return r, err
+	results, err := callMethod(object, wither, args, convertArgs, caller.ValidatorWither)
+	if err != nil {
+		return nil, err
+	}
+
+	return results[0], nil
 }
