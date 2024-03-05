@@ -41,7 +41,7 @@ func Func(fn any) (reflect.Value, error) {
 }
 
 const (
-	invalidMethodErr = "invalid func (%T).%+q"
+	invalidMethodErr = "(%T).%+q: %w"
 )
 
 func Method(object any, method string) (reflect.Value, error) {
@@ -59,11 +59,16 @@ func Method(object any, method string) (reflect.Value, error) {
 
 	for !fn.IsValid() && (obj.Kind() == reflect.Ptr || obj.Kind() == reflect.Interface) {
 		obj = obj.Elem()
+
+		if !obj.IsValid() {
+			break
+		}
+
 		fn = obj.MethodByName(method)
 	}
 
 	if !fn.IsValid() {
-		return reflect.Value{}, fmt.Errorf(invalidMethodErr, object, method)
+		return reflect.Value{}, fmt.Errorf(invalidMethodErr, object, method, ErrInvalidMethod)
 	}
 
 	return fn, nil
@@ -72,7 +77,7 @@ func Method(object any, method string) (reflect.Value, error) {
 func MethodByName(val reflect.Value, method string) (reflect.Value, error) {
 	fn := val.MethodByName(method)
 	if !fn.IsValid() {
-		return reflect.Value{}, fmt.Errorf(invalidMethodErr, val.Interface(), method)
+		return reflect.Value{}, fmt.Errorf(invalidMethodErr, val.Interface(), method, ErrInvalidMethod)
 	}
 
 	return fn, nil

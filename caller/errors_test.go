@@ -26,15 +26,70 @@ import (
 
 	"github.com/gontainer/grouperror"
 	errAssert "github.com/gontainer/grouperror/assert"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestProviderError_Collection(t *testing.T) {
 	t.Parallel()
 
-	err := newProviderError(grouperror.Prefix("prefix: ", errors.New("error 1"), errors.New("error 2")))
+	err := newProviderError(newCallerError(
+		grouperror.Prefix("prefix: ", errors.New("error 1"), errors.New("error 2")),
+	))
 	expected := []string{
 		`prefix: error 1`,
 		`prefix: error 2`,
 	}
 	errAssert.EqualErrorGroup(t, err, expected)
+}
+
+type providerFunc func() (any, error)
+
+func (p providerFunc) Provide() (any, error) { //nolint:ireturn
+	return p()
+}
+
+func TestProviderError_Unwrap(t *testing.T) {
+	t.Parallel()
+
+	t.Run("Func", func(t *testing.T) {
+		t.Parallel()
+
+		originalErr := errors.New("my error")
+
+		_, executed, err := CallProvider(
+			func() (any, error) {
+				return nil, originalErr
+			},
+			nil,
+			true,
+		)
+
+		require.EqualError(t, err, "provider returned error: my error")
+		assert.True(t, executed)
+		var providerErr *ProviderError
+		require.True(t, errors.As(err, &providerErr))
+		require.Same(t, originalErr, providerErr.Unwrap())
+	})
+
+	t.Run("Method", func(t *testing.T) {
+		t.Parallel()
+
+		originalErr := errors.New("my error")
+
+		_, executed, err := CallProviderMethod(
+			providerFunc(func() (any, error) {
+				return nil, originalErr
+			}),
+			"Provide",
+			nil,
+			true,
+		)
+
+		require.EqualError(t, err, "provider returned error: my error")
+		assert.True(t, executed)
+		var providerErr *ProviderError
+		require.True(t, errors.As(err, &providerErr))
+		require.Same(t, originalErr, providerErr.Unwrap())
+	})
 }

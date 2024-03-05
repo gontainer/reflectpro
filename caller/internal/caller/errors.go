@@ -20,48 +20,11 @@
 
 package caller
 
-type callerError struct {
-	error
-}
+import (
+	"errors"
+)
 
-func newCallerError(err error) *callerError {
-	return &callerError{error: err}
-}
-
-func (e *callerError) Collection() []error {
-	return []error{e.error}
-}
-
-func (e *callerError) Unwrap() error {
-	return e.error
-}
-
-/*
-ProviderError wraps errors returned by providers in [CallProvider].
-
-	type myError struct {
-		error
-	}
-
-	p := func() (any, error) {
-		return nil, &myError{errors.New("my error")}
-	}
-
-	_, executed, err := caller.CallProvider(p, nil, false)
-	if err != nil {
-		if executed {
-			errors.As(err, &providerErr)
-			var providerErr *caller.ProviderError
-			fmt.Println("provider returned error:", providerErr.Unwrap())
-		} else {
-			fmt.Println("provider wasn't invoked:", err)
-		}
-	}
-*/
-type ProviderError struct {
-	*callerError
-}
-
-func newProviderError(err error) *ProviderError {
-	return &ProviderError{callerError: newCallerError(err)}
-}
+var (
+	ErrInvalidMethod = errors.New("invalid method")
+	ErrInvalidObject = errors.New("invalid object")
+)

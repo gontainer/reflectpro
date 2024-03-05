@@ -22,7 +22,6 @@ package caller
 
 import (
 	"fmt"
-	"reflect"
 
 	"github.com/gontainer/grouperror"
 	"github.com/gontainer/reflectpro/caller/internal/caller"
@@ -54,56 +53,15 @@ const (
 	providerExternalErrPrefix       = "provider returned error: "
 )
 
-//nolint:wrapcheck
-func callProvider( //nolint:ireturn
-	getFn func() (reflect.Value, error),
-	args []any,
-	convertArgs bool,
-	internalErrPrefix func() string,
-) (_ any, err error) {
-	executedProvider := false
-	defer func() {
-		if !executedProvider && err != nil {
-			err = grouperror.Prefix(internalErrPrefix(), err)
-		}
-	}()
-
-	fn, err := getFn()
-	if err != nil {
-		return nil, err
-	}
-
-	if err := caller.ValidatorProvider.Validate(fn); err != nil {
-		return nil, err
-	}
-
-	results, err := caller.CallFunc(fn, args, convertArgs)
-	if err != nil {
-		return nil, err
-	}
-
-	executedProvider = true
-
-	r := results[0]
-
-	var e error
-
-	if len(results) > 1 {
-		// do not panic when results[1] == nil
-		e, _ = results[1].(error)
-	}
-
-	if e != nil {
-		e = grouperror.Prefix(providerExternalErrPrefix, newProviderError(e))
-	}
-
-	return r, e
-}
-
 /*
 CallProvider works similar to [Call] with the difference it requires a provider as the first argument.
 Provider is a function which returns 1 or 2 values.
 The second return value which is optional must be a type of error.
+
+Whenever it returns a non-nil error, the return "executed" informs whether the error has been returned by the provider,
+or not.
+Whenever it return a nil error, the return "executed"equals false.
+
 See [ProviderError].
 
 	p := func() (any, error) {
@@ -122,47 +80,25 @@ See [ProviderError].
 	db, err := caller.CallProvider(p, nil, false)
 */
 //nolint:wrapcheck
-func CallProvider(provider any, args []any, convertArgs bool) (any, error) { //nolint:ireturn
-	return callProvider(
-		func() (reflect.Value, error) {
-			return caller.Func(provider)
-		},
-		args,
-		convertArgs,
-		func() string {
-			return fmt.Sprintf(providerInternalErrPrefix, provider)
-		},
-	)
-}
+func CallProvider(provider any, args []any, convertArgs bool) (_ any, executed bool, err error) { //nolint:ireturn
+	defer func() {
+		if !executed && err != nil {
+			err = grouperror.Prefix(fmt.Sprintf(providerInternalErrPrefix, provider), err)
+		}
+	}()
 
-/*
-CallProviderMethod works similar to [CallProvider], but the provider must be a method on the given object.
-
-	db, _ := sql.Open("mysql", "user:password@/dbname")
-	tx, err := caller.CallProviderMethod(db, "Begin", nil, false)
-*/
-//nolint:wrapcheck
-func CallProviderMethod(object any, method string, args []any, convertArgs bool) (any, error) { //nolint:ireturn
-	return callProvider(
-		func() (reflect.Value, error) {
-			return caller.Method(object, method)
-		},
-		args,
-		convertArgs,
-		func() string {
-			return fmt.Sprintf(providerMethodInternalErrPrefix, object, method)
-		},
-	)
-}
-
-// ForceCallProviderMethod is an extended version of [CallProviderMethod].
-// See [ForceCallMethod].
-//
-//nolint:wrapcheck
-func ForceCallProviderMethod(object any, method string, args []any, convertArgs bool) (any, error) { //nolint:ireturn
-	results, err := caller.ValidateAndForceCallMethod(object, method, args, convertArgs, caller.ValidatorProvider)
+	fn, err := caller.Func(provider)
 	if err != nil {
-		return nil, grouperror.Prefix(fmt.Sprintf(providerMethodInternalErrPrefix, object, method), err)
+		return nil, false, err
+	}
+
+	if err := caller.ValidatorProvider.Validate(fn); err != nil {
+		return nil, false, err
+	}
+
+	results, err := caller.CallFunc(fn, args, convertArgs)
+	if err != nil {
+		return nil, false, err
 	}
 
 	r := results[0]
@@ -178,7 +114,43 @@ func ForceCallProviderMethod(object any, method string, args []any, convertArgs 
 		e = grouperror.Prefix(providerExternalErrPrefix, newProviderError(e))
 	}
 
-	return r, e
+	return r, true, e
+}
+
+/*
+CallProviderMethod works similar to [CallProvider], but the provider must be a method on the given object.
+
+	db, _ := sql.Open("mysql", "user:password@/dbname")
+	tx, _, err := caller.CallProviderMethod(db, "Begin", nil, false)
+*/
+func CallProviderMethod( //nolint:ireturn
+	object any,
+	method string,
+	args []any,
+	convertArgs bool,
+) (
+	_ any,
+	executed bool,
+	err error,
+) {
+	results, err := callMethod(object, method, args, convertArgs, caller.ValidatorProvider)
+	if err != nil {
+		//nolint:wrapcheck
+		return nil, false, grouperror.Prefix(fmt.Sprintf(providerMethodInternalErrPrefix, object, method), err)
+	}
+
+	var e error
+
+	if len(results) > 1 {
+		// do not panic when results[1] == nil
+		e, _ = results[1].(error)
+	}
+
+	if e != nil {
+		e = grouperror.Prefix(providerExternalErrPrefix, newProviderError(e))
+	}
+
+	return results[0], true, e //nolint:wrapcheck
 }
 
 /*
@@ -194,55 +166,13 @@ CallMethod works similar to [Call] with the difference it calls the method by th
 
 	func main() {
 		p := &Person{}
-		_, _ = caller.CallMethod(p, "SetName", []any{"Mary"}, false)
+		_, _, _ = caller.CallMethod(p, "SetName", []any{"Mary"}, false)
 		fmt.Println(p.name)
 		// Output: Mary
 	}
 */
-//nolint:wrapcheck
 func CallMethod(object any, method string, args []any, convertArgs bool) (_ []any, err error) {
-	defer func() {
-		if err != nil {
-			err = grouperror.Prefix(fmt.Sprintf("cannot call method (%T).%+q: ", object, method), err)
-		}
-	}()
-
-	fn, err := caller.Method(object, method)
-	if err != nil {
-		return nil, err
-	}
-
-	return caller.CallFunc(fn, args, convertArgs)
-}
-
-/*
-ForceCallMethod is an extended version of [CallMethod].
-
-The following code cannot work:
-
-	var p any = person{}
-	caller.CallMethod(&p, "SetName", []any{"Jane"}, false)
-
-because `&p` returns a pointer to an interface, not to the `person` type.
-The same problem occurs without using that package:
-
-	var tmp any = person{}
-	p := &tmp.(person)
-	// compiler returns:
-	// invalid operation: cannot take address of tmp.(person) (comma, ok expression of type person).
-
-[ForceCallMethod] solves that problem by copying the value and creating a pointer to it using the [reflect] package,
-but that solution is slightly slower. In contrast to [CallMethod], it requires a pointer always.
-*/
-//nolint:wrapcheck
-func ForceCallMethod(object any, method string, args []any, convertArgs bool) (_ []any, err error) {
-	defer func() {
-		if err != nil {
-			err = grouperror.Prefix(fmt.Sprintf("cannot call method (%T).%+q: ", object, method), err)
-		}
-	}()
-
-	return caller.ValidateAndForceCallMethod(object, method, args, convertArgs, caller.DontValidate)
+	return callMethod(object, method, args, convertArgs, caller.DontValidate)
 }
 
 /*
@@ -253,7 +183,7 @@ CallWither works similar to [CallMethod] with the difference the method must be 
 	}
 
 	func (p Person) WithName(n string) Person {
-	    p.Name = n
+	    p.name = n
 	    return p
 	}
 
@@ -263,7 +193,6 @@ CallWither works similar to [CallMethod] with the difference the method must be 
 	    fmt.Printf("%+v", p2) // {name:Mary}
 	}
 */
-//nolint:wrapcheck
 func CallWither(object any, wither string, args []any, convertArgs bool) (_ any, err error) { //nolint:ireturn
 	defer func() {
 		if err != nil {
@@ -271,37 +200,10 @@ func CallWither(object any, wither string, args []any, convertArgs bool) (_ any,
 		}
 	}()
 
-	fn, err := caller.Method(object, wither)
+	results, err := callMethod(object, wither, args, convertArgs, caller.ValidatorWither)
 	if err != nil {
 		return nil, err
 	}
 
-	if err := caller.ValidatorWither.Validate(fn); err != nil {
-		return nil, err
-	}
-
-	r, err := caller.CallFunc(fn, args, convertArgs)
-	if err != nil {
-		return nil, err
-	}
-
-	return r[0], nil
-}
-
-// ForceCallWither calls the given wither (see [CallWither]) using the same approach as [ForceCallMethod].
-//
-//nolint:wrapcheck
-func ForceCallWither(object any, wither string, args []any, convertArgs bool) (_ any, err error) { //nolint:ireturn
-	defer func() {
-		if err != nil {
-			err = grouperror.Prefix(fmt.Sprintf("cannot call wither (%T).%+q: ", object, wither), err)
-		}
-	}()
-
-	r, err := caller.ValidateAndForceCallMethod(object, wither, args, convertArgs, caller.ValidatorWither)
-	if err != nil {
-		return nil, err
-	}
-
-	return r[0], nil
+	return results[0], nil
 }

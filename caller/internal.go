@@ -20,48 +20,50 @@
 
 package caller
 
-type callerError struct {
-	error
+import (
+	"errors"
+	"fmt"
+	"reflect"
+
+	"github.com/gontainer/grouperror"
+	"github.com/gontainer/reflectpro/caller/internal/caller"
+)
+
+func isPtr(v any) bool {
+	return reflect.ValueOf(v).Kind() == reflect.Ptr
 }
 
-func newCallerError(err error) *callerError {
-	return &callerError{error: err}
-}
+//nolint:wrapcheck
+func callMethod(
+	object any,
+	method string,
+	args []any,
+	convertArgs bool,
+	validator caller.FuncValidator,
+) (
+	_ []any,
+	err error,
+) {
+	defer func() {
+		if err != nil {
+			err = grouperror.Prefix(fmt.Sprintf("cannot call method (%T).%+q: ", object, method), err)
+		}
+	}()
 
-func (e *callerError) Collection() []error {
-	return []error{e.error}
-}
-
-func (e *callerError) Unwrap() error {
-	return e.error
-}
-
-/*
-ProviderError wraps errors returned by providers in [CallProvider].
-
-	type myError struct {
-		error
-	}
-
-	p := func() (any, error) {
-		return nil, &myError{errors.New("my error")}
-	}
-
-	_, executed, err := caller.CallProvider(p, nil, false)
+	fn, err := caller.Method(object, method)
 	if err != nil {
-		if executed {
-			errors.As(err, &providerErr)
-			var providerErr *caller.ProviderError
-			fmt.Println("provider returned error:", providerErr.Unwrap())
-		} else {
-			fmt.Println("provider wasn't invoked:", err)
+		if errors.Is(err, caller.ErrInvalidMethod) && isPtr(object) {
+			return caller.ValidateAndForceCallMethod(object, method, args, convertArgs, validator)
+		}
+
+		return nil, err
+	}
+
+	if validator != nil {
+		if err := validator.Validate(fn); err != nil {
+			return nil, err
 		}
 	}
-*/
-type ProviderError struct {
-	*callerError
-}
 
-func newProviderError(err error) *ProviderError {
-	return &ProviderError{callerError: newCallerError(err)}
+	return caller.CallFunc(fn, args, convertArgs)
 }
