@@ -205,10 +205,3 @@ func CallWither(object any, wither string, args []any, convertArgs bool) (_ any,
 
 	return r, err
 }
-
-// ForceCallWither calls the given wither (see [CallWither]) using the same approach as [ForceCallMethod].
-//
-// Deprecated.
-func ForceCallWither(object any, wither string, args []any, convertArgs bool) (_ any, err error) { //nolint:ireturn
-	return CallWither(object, wither, args, convertArgs)
-}
