@@ -37,3 +37,4 @@ jobs:
       with:
         path-to-profile: coverage.out
         flag-name: Go-${{ matrix.go }}
+      continue-on-error: true
