@@ -118,10 +118,8 @@ CallProviderMethod works similar to [CallProvider], but the provider must be a m
 	db, _ := sql.Open("mysql", "user:password@/dbname")
 	tx, err := caller.CallProviderMethod(db, "Begin", nil, false)
 */
-func CallProviderMethod(object any, method string, args []any, convertArgs bool) (any, error) { //nolint:ireturn
-	r, _, err := NewCallProviderMethod(object, method, args, convertArgs)
-
-	return r, err
+func CallProviderMethod(object any, method string, args []any, convertArgs bool) (_ any, executed bool, err error) { //nolint:ireturn
+	return NewCallProviderMethod(object, method, args, convertArgs)
 }
 
 /*

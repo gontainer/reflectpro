@@ -441,8 +441,9 @@ func TestCallProviderMethod(t *testing.T) {
 					return "value #1"
 				},
 			}
-			r, err := caller.CallProviderMethod(&p, "Provider", nil, false)
+			r, executed, err := caller.CallProviderMethod(&p, "Provider", nil, false)
 			assert.NoError(t, err)
+			assert.True(t, executed)
 			assert.Equal(t, "value #1", r)
 		})
 		t.Run("#2", func(t *testing.T) {
@@ -453,8 +454,9 @@ func TestCallProviderMethod(t *testing.T) {
 					return "value #2", nil
 				},
 			}
-			r, err := caller.CallProviderMethod(&p, "ProviderWithError", nil, false)
+			r, executed, err := caller.CallProviderMethod(&p, "ProviderWithError", nil, false)
 			assert.NoError(t, err)
+			assert.True(t, executed)
 			assert.Equal(t, "value #2", r)
 		})
 	})
@@ -464,8 +466,9 @@ func TestCallProviderMethod(t *testing.T) {
 		t.Run("#1", func(t *testing.T) {
 			t.Parallel()
 
-			r, err := caller.CallProviderMethod(nil, "MyProvider", nil, false)
+			r, executed, err := caller.CallProviderMethod(nil, "MyProvider", nil, false)
 			assert.Nil(t, r)
+			assert.False(t, executed)
 			assert.EqualError(t, err, `cannot call provider (<nil>)."MyProvider": cannot call method (<nil>)."MyProvider": invalid method receiver: <nil>`)
 		})
 		t.Run("#2", func(t *testing.T) {
@@ -476,15 +479,17 @@ func TestCallProviderMethod(t *testing.T) {
 					return "error value", errors.New("my error")
 				},
 			}
-			r, err := caller.CallProviderMethod(&p, "ProviderWithError", nil, false)
+			r, executed, err := caller.CallProviderMethod(&p, "ProviderWithError", nil, false)
 			assert.Equal(t, "error value", r)
+			assert.True(t, executed)
 			assert.EqualError(t, err, "provider returned error: my error")
 		})
 		t.Run("#3", func(t *testing.T) {
 			t.Parallel()
 
-			r, err := caller.CallProviderMethod(&mockProvider{}, "NotProvider", nil, false)
+			r, executed, err := caller.CallProviderMethod(&mockProvider{}, "NotProvider", nil, false)
 			assert.Nil(t, r)
+			assert.False(t, executed)
 			assert.EqualError(t, err, `cannot call provider (*caller_test.mockProvider)."NotProvider": cannot call method (*caller_test.mockProvider)."NotProvider": second value returned by provider must implement error interface, interface {} given`)
 		})
 	})
