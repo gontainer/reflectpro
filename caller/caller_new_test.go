@@ -38,6 +38,12 @@ func (c *character) SetName(n string) {
 	c.name = n
 }
 
+func (c character) WithName(n string) character {
+	c.name = n
+
+	return c
+}
+
 func (c character) GetName() string {
 	return c.name
 }
@@ -334,4 +340,79 @@ func TestNewCallProviderMethod_error(t *testing.T) {
 		require.False(t, executed)
 		assert.Nil(t, result)
 	})
+}
+
+func TestNewCallWither_ok(t *testing.T) {
+	t.Parallel()
+
+	c := character{}
+	decorated, err := caller.NewCallWither(c, "WithName", []any{"Jane"}, false)
+	require.NoError(t, err)
+	require.Equal(
+		t,
+		character{name: "Jane"},
+		decorated,
+	)
+}
+
+//nolint:lll
+func TestNewCallWither_errors(t *testing.T) {
+	t.Parallel()
+
+	var loop any
+	loop = &loop
+
+	scenarios := []struct {
+		name        string
+		object      any
+		wither      string
+		args        []any
+		convertArgs bool
+		error       string
+	}{
+		{
+			name:        "Loop",
+			object:      loop,
+			wither:      "Loop",
+			args:        nil,
+			convertArgs: false,
+			error:       `cannot call wither (*interface {})."Loop": cannot call method (*interface {})."Loop": unexpected pointer loop`,
+		},
+		{
+			name:        "Setter",
+			object:      &character{},
+			wither:      "SetName",
+			args:        []any{"Jane"},
+			convertArgs: false,
+			error:       `cannot call wither (*caller_test.character)."SetName": cannot call method (*caller_test.character)."SetName": wither must return 1 value, given function returns 0 values`,
+		},
+		{
+			name:        "Not assignable arguments",
+			object:      character{},
+			wither:      "WithName",
+			args:        []any{123},
+			convertArgs: false,
+			error:       `cannot call wither (caller_test.character)."WithName": cannot call method (caller_test.character)."WithName": arg0: value of type int is not assignable to type string`,
+		},
+		{
+			name:        "Cannot convert arguments",
+			object:      character{},
+			wither:      "WithName",
+			args:        []any{struct{}{}},
+			convertArgs: true,
+			error:       `cannot call wither (caller_test.character)."WithName": cannot call method (caller_test.character)."WithName": arg0: cannot convert struct {} to string`,
+		},
+	}
+
+	for _, s := range scenarios {
+		s := s
+
+		t.Run(s.name, func(t *testing.T) {
+			t.Parallel()
+
+			decorated, err := caller.NewCallWither(s.object, s.wither, s.args, s.convertArgs)
+			require.EqualError(t, err, s.error)
+			require.Nil(t, decorated)
+		})
+	}
 }

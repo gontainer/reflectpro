@@ -118,7 +118,6 @@ func NewCallWither( //nolint:ireturn
 	convertArgs bool,
 ) (
 	_ any,
-	executed bool,
 	err error,
 ) {
 	defer func() {
@@ -129,8 +128,8 @@ func NewCallWither( //nolint:ireturn
 
 	results, err := callMethod(object, wither, args, convertArgs, caller.ValidatorWither)
 	if err != nil {
-		return nil, false, err
+		return nil, err
 	}
 
-	return results[0], true, nil
+	return results[0], nil
 }

@@ -201,7 +201,7 @@ CallWither works similar to [CallMethod] with the difference the method must be 
 	}
 */
 func CallWither(object any, wither string, args []any, convertArgs bool) (_ any, err error) { //nolint:ireturn
-	r, _, err := NewCallWither(object, wither, args, convertArgs)
+	r, err := NewCallWither(object, wither, args, convertArgs)
 
 	return r, err
 }
