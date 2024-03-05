@@ -29,40 +29,6 @@ import (
 	intReflect "github.com/gontainer/reflectpro/internal/reflect"
 )
 
-type reflectType struct {
-	reflect.Type
-}
-
-// In works almost same as reflect.Type.In,
-// but it returns t.In(t.NumIn() - 1).Elem() for t.isVariadic() && i >= t.NumIn().
-func (t reflectType) In(i int) reflect.Type {
-	last := t.NumIn() - 1
-	if i > last {
-		i = last
-	}
-
-	r := t.Type.In(i)
-
-	if t.IsVariadic() && i == last {
-		r = r.Elem()
-	}
-
-	return r
-}
-
-// ValidateAndCallFunc validates and calls the given func.
-//
-// fn.Kind() MUST BE equal to [reflect.Func].
-func ValidateAndCallFunc(fn reflect.Value, args []any, convertArgs bool, v FuncValidator) ([]any, error) {
-	if v != nil {
-		if err := v.Validate(fn); err != nil {
-			return nil, err //nolint:wrapcheck
-		}
-	}
-
-	return CallFunc(fn, args, convertArgs)
-}
-
 // CallFunc calls the given func.
 //
 // fn.Kind() MUST BE equal to [reflect.Func].
@@ -117,8 +83,56 @@ func CallFunc(fn reflect.Value, args []any, convertArgs bool) ([]any, error) {
 	return result, nil
 }
 
+//nolint:wrapcheck
+func CallMethod(
+	object any,
+	method string,
+	args []any,
+	convertArgs bool,
+	validator FuncValidator,
+) (
+	_ []any,
+	err error,
+) {
+	defer func() {
+		if err != nil {
+			err = grouperror.Prefix(fmt.Sprintf("cannot call method (%T).%+q: ", object, method), err)
+		}
+	}()
+
+	fn, err := Method(object, method)
+	if err != nil {
+		if errors.Is(err, ErrInvalidMethod) && isPtr(object) {
+			return validateAndForceCallMethod(object, method, args, convertArgs, validator)
+		}
+
+		return nil, err
+	}
+
+	if validator != nil {
+		if err := validator.Validate(fn); err != nil {
+			return nil, err
+		}
+	}
+
+	return CallFunc(fn, args, convertArgs)
+}
+
+// validateAndCallFunc validates and calls the given func.
+//
+// fn.Kind() MUST BE equal to [reflect.Func].
+func validateAndCallFunc(fn reflect.Value, args []any, convertArgs bool, v FuncValidator) ([]any, error) {
+	if v != nil {
+		if err := v.Validate(fn); err != nil {
+			return nil, err //nolint:wrapcheck
+		}
+	}
+
+	return CallFunc(fn, args, convertArgs)
+}
+
 //nolint:wrapcheck,cyclop
-func ValidateAndForceCallMethod(
+func validateAndForceCallMethod(
 	object any,
 	method string,
 	args []any,
@@ -162,7 +176,7 @@ func ValidateAndForceCallMethod(
 			return nil, err
 		}
 
-		return ValidateAndCallFunc(fn, args, convertArgs, v)
+		return validateAndCallFunc(fn, args, convertArgs, v)
 	}
 
 	if len(chain) == 3 && chain.Prefixed(reflect.Ptr, reflect.Interface) {
@@ -178,7 +192,7 @@ func ValidateAndForceCallMethod(
 			return nil, err
 		}
 
-		res, err := ValidateAndCallFunc(fn, args, convertArgs, v)
+		res, err := validateAndCallFunc(fn, args, convertArgs, v)
 		if err == nil {
 			val.Elem().Set(cp.Elem())
 		}
@@ -186,5 +200,9 @@ func ValidateAndForceCallMethod(
 		return res, err
 	}
 
-	panic("ValidateAndForceCallMethod: unexpected error") // this should be unreachable
+	panic("validateAndForceCallMethod: unexpected error") // this should be unreachable
+}
+
+func isPtr(v any) bool {
+	return reflect.ValueOf(v).Kind() == reflect.Ptr
 }

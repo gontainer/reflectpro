@@ -133,7 +133,7 @@ func CallProviderMethod( //nolint:ireturn
 	executed bool,
 	err error,
 ) {
-	results, err := callMethod(object, method, args, convertArgs, caller.ValidatorProvider)
+	results, err := caller.CallMethod(object, method, args, convertArgs, caller.ValidatorProvider)
 	if err != nil {
 		//nolint:wrapcheck
 		return nil, false, grouperror.Prefix(fmt.Sprintf(providerMethodInternalErrPrefix, object, method), err)
@@ -172,7 +172,7 @@ CallMethod works similar to [Call] with the difference it calls the method by th
 	}
 */
 func CallMethod(object any, method string, args []any, convertArgs bool) (_ []any, err error) {
-	return callMethod(object, method, args, convertArgs, caller.DontValidate)
+	return caller.CallMethod(object, method, args, convertArgs, caller.DontValidate) //nolint:wrapcheck
 }
 
 /*
@@ -200,9 +200,9 @@ func CallWither(object any, wither string, args []any, convertArgs bool) (_ any,
 		}
 	}()
 
-	results, err := callMethod(object, wither, args, convertArgs, caller.ValidatorWither)
+	results, err := caller.CallMethod(object, wither, args, convertArgs, caller.ValidatorWither)
 	if err != nil {
-		return nil, err
+		return nil, err //nolint:wrapcheck
 	}
 
 	return results[0], nil
