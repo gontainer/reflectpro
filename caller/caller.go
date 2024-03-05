@@ -77,7 +77,7 @@ See [ProviderError].
 	    return db, nil
 	}
 
-	db, err := caller.CallProvider(p, nil, false)
+	db, executed, err := caller.CallProvider(p, nil, false)
 */
 //nolint:wrapcheck
 func CallProvider(provider any, args []any, convertArgs bool) (_ any, executed bool, err error) { //nolint:ireturn
@@ -170,7 +170,7 @@ CallMethod works similar to [Call] with the difference it calls the method by th
 
 	func main() {
 		p := &Person{}
-		_, _, _ = caller.CallMethod(p, "SetName", []any{"Mary"}, false)
+		_, _ = caller.CallMethod(p, "SetName", []any{"Mary"}, false)
 		fmt.Println(p.name)
 		// Output: Mary
 	}
