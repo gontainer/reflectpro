@@ -54,14 +54,14 @@ func (*callerStrct) Call(fn func()) {
 	fn()
 }
 
-func TestNewCallMethod_error(t *testing.T) {
+func TestCallMethod_error(t *testing.T) {
 	t.Parallel()
 
 	t.Run("No pointer, expected pointer receiver", func(t *testing.T) {
 		t.Parallel()
 
 		c := character{}
-		_, err := caller.NewCallMethod(c, "SetName", []any{"Thor"}, true)
+		_, err := caller.CallMethod(c, "SetName", []any{"Thor"}, true)
 		require.EqualError(
 			t,
 			err,
@@ -74,7 +74,7 @@ func TestNewCallMethod_error(t *testing.T) {
 		t.Parallel()
 
 		object := &struct{}{}
-		_, err := caller.NewCallMethod(&object, "Do", nil, true)
+		_, err := caller.CallMethod(&object, "Do", nil, true)
 		require.EqualError(t, err, `cannot call method (**struct {})."Do": (*struct {})."Do": invalid method`)
 	})
 
@@ -82,7 +82,7 @@ func TestNewCallMethod_error(t *testing.T) {
 		t.Parallel()
 
 		object := struct{}{}
-		_, err := caller.NewCallMethod(&object, "Do", nil, true)
+		_, err := caller.CallMethod(&object, "Do", nil, true)
 		require.EqualError(t, err, `cannot call method (*struct {})."Do": (*struct {})."Do": invalid method`)
 	})
 
@@ -90,7 +90,7 @@ func TestNewCallMethod_error(t *testing.T) {
 		t.Parallel()
 
 		c := character{}
-		_, err := caller.NewCallMethod(&c, "SetName", []any{struct{}{}}, true)
+		_, err := caller.CallMethod(&c, "SetName", []any{struct{}{}}, true)
 		require.EqualError(
 			t,
 			err,
@@ -102,7 +102,7 @@ func TestNewCallMethod_error(t *testing.T) {
 		t.Parallel()
 
 		c := character{}
-		_, err := caller.NewCallMethod(&c, "SetName", []any{struct{}{}}, false)
+		_, err := caller.CallMethod(&c, "SetName", []any{struct{}{}}, false)
 		require.EqualError(
 			t,
 			err,
@@ -115,7 +115,7 @@ func TestNewCallMethod_error(t *testing.T) {
 		t.Parallel()
 
 		c := character{}
-		_, err := caller.NewCallMethod(&c, "SetName", []any{"Bernhard", "Riemann"}, false)
+		_, err := caller.CallMethod(&c, "SetName", []any{"Bernhard", "Riemann"}, false)
 		require.EqualError(
 			t,
 			err,
@@ -127,7 +127,7 @@ func TestNewCallMethod_error(t *testing.T) {
 		t.Parallel()
 
 		c := character{}
-		_, err := caller.NewCallMethod(&c, "SetName", []any{}, false)
+		_, err := caller.CallMethod(&c, "SetName", []any{}, false)
 		require.EqualError(
 			t,
 			err,
@@ -139,19 +139,19 @@ func TestNewCallMethod_error(t *testing.T) {
 		t.Parallel()
 
 		var c any
-		_, err := caller.NewCallMethod(&c, "Do", nil, true)
+		_, err := caller.CallMethod(&c, "Do", nil, true)
 		require.EqualError(t, err, `cannot call method (*interface {})."Do": invalid object`)
 	})
 }
 
-func TestNewCallMethod_okPointer(t *testing.T) {
+func TestCallMethod_okPointer(t *testing.T) {
 	t.Parallel()
 
 	t.Run("Pointer", func(t *testing.T) {
 		t.Parallel()
 
 		c := character{}
-		_, err := caller.NewCallMethod(&c, "SetName", []any{"Thor"}, true)
+		_, err := caller.CallMethod(&c, "SetName", []any{"Thor"}, true)
 		require.NoError(t, err)
 		assert.Equal(t, c.name, "Thor")
 	})
@@ -160,7 +160,7 @@ func TestNewCallMethod_okPointer(t *testing.T) {
 		t.Parallel()
 
 		c := &character{}
-		_, err := caller.NewCallMethod(c, "SetName", []any{"Thor"}, true)
+		_, err := caller.CallMethod(c, "SetName", []any{"Thor"}, true)
 		require.NoError(t, err)
 		assert.Equal(t, c.name, "Thor")
 	})
@@ -169,7 +169,7 @@ func TestNewCallMethod_okPointer(t *testing.T) {
 		t.Parallel()
 
 		c := &character{}
-		_, err := caller.NewCallMethod(&c, "SetName", []any{"Thor"}, true)
+		_, err := caller.CallMethod(&c, "SetName", []any{"Thor"}, true)
 		require.NoError(t, err)
 		assert.Equal(t, c.name, "Thor")
 	})
@@ -180,7 +180,7 @@ func TestNewCallMethod_okPointer(t *testing.T) {
 		tmp := &character{}
 		c := &tmp
 
-		_, err := caller.NewCallMethod(&c, "SetName", []any{"Thor"}, true)
+		_, err := caller.CallMethod(&c, "SetName", []any{"Thor"}, true)
 		require.NoError(t, err)
 		actual, _ := getter.Get(c, "name")
 		assert.Equal(t, actual, "Thor")
@@ -193,7 +193,7 @@ func TestNewCallMethod_okPointer(t *testing.T) {
 		tmp2 := &tmp
 		c := &tmp2
 
-		_, err := caller.NewCallMethod(&c, "SetName", []any{"Thor"}, true)
+		_, err := caller.CallMethod(&c, "SetName", []any{"Thor"}, true)
 		require.NoError(t, err)
 		actual, _ := getter.Get(c, "name")
 		assert.Equal(t, actual, "Thor")
@@ -204,7 +204,7 @@ func TestNewCallMethod_okPointer(t *testing.T) {
 
 		var c any = character{}
 
-		_, err := caller.NewCallMethod(&c, "SetName", []any{"Thor"}, true)
+		_, err := caller.CallMethod(&c, "SetName", []any{"Thor"}, true)
 		require.NoError(t, err)
 		actual, _ := getter.Get(c, "name")
 		assert.Equal(t, actual, "Thor")
@@ -215,7 +215,7 @@ func TestNewCallMethod_okPointer(t *testing.T) {
 
 		var c any = &character{}
 
-		_, err := caller.NewCallMethod(&c, "SetName", []any{"Thor"}, true)
+		_, err := caller.CallMethod(&c, "SetName", []any{"Thor"}, true)
 		require.NoError(t, err)
 		actual, _ := getter.Get(c, "name")
 		assert.Equal(t, actual, "Thor")
@@ -226,7 +226,7 @@ func TestNewCallMethod_okPointer(t *testing.T) {
 
 		var c any = &character{}
 
-		_, err := caller.NewCallMethod(c, "SetName", []any{"Thor"}, true)
+		_, err := caller.CallMethod(c, "SetName", []any{"Thor"}, true)
 		require.NoError(t, err)
 		actual, _ := getter.Get(c, "name")
 		assert.Equal(t, actual, "Thor")
@@ -245,7 +245,7 @@ func TestNewCallMethod_okPointer(t *testing.T) {
 			}
 		)
 
-		_, err := caller.NewCallMethod(c, "Call", []any{callee}, false)
+		_, err := caller.CallMethod(c, "Call", []any{callee}, false)
 		require.NoError(t, err)
 		assert.True(t, executed)
 	})
@@ -254,7 +254,7 @@ func TestNewCallMethod_okPointer(t *testing.T) {
 		t.Parallel()
 
 		c := character{name: "Thor"}
-		r, err := caller.NewCallMethod(c, "GetName", nil, false)
+		r, err := caller.CallMethod(c, "GetName", nil, false)
 		require.NoError(t, err)
 		assert.Equal(t, []any{"Thor"}, r)
 	})
@@ -263,7 +263,7 @@ func TestNewCallMethod_okPointer(t *testing.T) {
 		t.Parallel()
 
 		c := character{name: "Thor"}
-		r, err := caller.NewCallMethod(&c, "GetName", nil, false)
+		r, err := caller.CallMethod(&c, "GetName", nil, false)
 		require.NoError(t, err)
 		assert.Equal(t, []any{"Thor"}, r)
 	})

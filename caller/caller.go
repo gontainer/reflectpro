@@ -143,7 +143,7 @@ CallMethod works similar to [Call] with the difference it calls the method by th
 	}
 */
 func CallMethod(object any, method string, args []any, convertArgs bool) (_ []any, err error) {
-	return NewCallMethod(object, method, args, convertArgs)
+	return callMethod(object, method, args, convertArgs, caller.DontValidate)
 }
 
 /*
