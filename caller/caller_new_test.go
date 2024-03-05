@@ -267,7 +267,7 @@ type provider struct {
 	fn func(...any) (any, error)
 }
 
-func (p provider) Provide(args ...any) (any, error) {
+func (p provider) Provide(args ...any) (any, error) { //nolint:ireturn
 	return p.fn(args...)
 }
 

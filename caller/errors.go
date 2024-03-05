@@ -24,8 +24,8 @@ type callerError struct {
 	error
 }
 
-func newCallerError(error error) *callerError {
-	return &callerError{error: error}
+func newCallerError(err error) *callerError {
+	return &callerError{error: err}
 }
 
 func (e *callerError) Collection() []error {

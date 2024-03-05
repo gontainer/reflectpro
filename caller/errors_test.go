@@ -44,7 +44,7 @@ func TestProviderError_Collection(t *testing.T) {
 
 type providerFunc func() (any, error)
 
-func (p providerFunc) Provide() (any, error) {
+func (p providerFunc) Provide() (any, error) { //nolint:ireturn
 	return p()
 }
 
@@ -52,6 +52,8 @@ func TestProviderError_Unwrap(t *testing.T) {
 	t.Parallel()
 
 	t.Run("Func", func(t *testing.T) {
+		t.Parallel()
+
 		originalErr := errors.New("my error")
 
 		_, err := CallProvider(
@@ -69,6 +71,8 @@ func TestProviderError_Unwrap(t *testing.T) {
 	})
 
 	t.Run("Method", func(t *testing.T) {
+		t.Parallel()
+
 		originalErr := errors.New("my error")
 
 		_, err := CallProviderMethod(
