@@ -73,6 +73,14 @@ func TestCall(t *testing.T) {
 		}
 	})
 
+	t.Run("Nil-func", func(t *testing.T) {
+		t.Parallel()
+
+		r, err := caller.Call(nil, nil, true)
+		assert.EqualError(t, err, "cannot call <nil>: invalid func: <nil>")
+		assert.Nil(t, r)
+	})
+
 	t.Run("Given invalid argument", func(t *testing.T) {
 		t.Parallel()
 
@@ -779,7 +787,7 @@ func TestCallMethod_error(t *testing.T) {
 	})
 }
 
-func TestCallMethod_okPointer(t *testing.T) {
+func TestCallMethod_ok(t *testing.T) {
 	t.Parallel()
 
 	t.Run("Pointer", func(t *testing.T) {
