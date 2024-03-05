@@ -37,5 +37,5 @@ Unexported fields are supported.
 	fmt.Println(p) // {Jane}
 */
 func Set(strct any, field string, val any, convert bool) error {
-	return reflect.Set(strct, field, val, convert) //nolint:wrapcheck
+	return reflect.Set(strct, field, val, convert)
 }

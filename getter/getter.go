@@ -36,6 +36,6 @@ Get returns the value of `field` of the `struct`. Unexported fields are supporte
 	fmt.Println(v)
 	// Output: Mary
 */
-func Get(strct any, field string) (any, error) { //nolint:ireturn
-	return reflect.Get(strct, field) //nolint:wrapcheck
+func Get(strct any, field string) (any, error) {
+	return reflect.Get(strct, field)
 }
