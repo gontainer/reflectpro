@@ -60,7 +60,7 @@ The second return value which is optional must be a type of error.
 
 Whenever it returns a non-nil error, the return "executed" informs whether the error has been returned by the provider,
 or not.
-Whenever it return a nil error, the return "executed"equals false.
+Whenever it returns a nil error, the return "executed"equals false.
 
 See [ProviderError].
 
@@ -119,6 +119,10 @@ func CallProvider(provider any, args []any, convertArgs bool) (_ any, executed b
 
 /*
 CallProviderMethod works similar to [CallProvider], but the provider must be a method on the given object.
+
+See [CallProvider].
+
+See [ProviderError].
 
 	db, _ := sql.Open("mysql", "user:password@/dbname")
 	tx, _, err := caller.CallProviderMethod(db, "Begin", nil, false)
