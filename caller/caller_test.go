@@ -616,19 +616,19 @@ func TestCallWither(t *testing.T) {
 				object: person{},
 				wither: "withName",
 				params: nil,
-				error:  `cannot call wither (caller_test.person)."withName": (caller_test.person)."withName": invalid method`,
+				error:  `cannot call wither (caller_test.person)."withName": cannot call method (caller_test.person)."withName": (caller_test.person)."withName": invalid method`,
 			},
 			{
 				object: person{},
 				wither: "Clone",
 				params: nil,
-				error:  `cannot call wither (caller_test.person)."Clone": wither must return 1 value, given function returns 2 values`,
+				error:  `cannot call wither (caller_test.person)."Clone": cannot call method (caller_test.person)."Clone": wither must return 1 value, given function returns 2 values`,
 			},
 			{
 				object: person{},
 				wither: "WithName",
 				params: nil,
-				error:  `cannot call wither (caller_test.person)."WithName": not enough input arguments`,
+				error:  `cannot call wither (caller_test.person)."WithName": cannot call method (caller_test.person)."WithName": not enough input arguments`,
 			},
 		}
 
@@ -650,7 +650,7 @@ func TestCallWither(t *testing.T) {
 		var a any
 		a = &a
 		r, err := caller.CallWither(a, "method", nil, false)
-		assert.EqualError(t, err, `cannot call wither (*interface {})."method": unexpected pointer loop`)
+		assert.EqualError(t, err, `cannot call wither (*interface {})."method": cannot call method (*interface {})."method": unexpected pointer loop`)
 		assert.Nil(t, r)
 	})
 
@@ -822,7 +822,7 @@ func TestForceCallWither(t *testing.T) {
 
 		var p any = Pet{}
 		r, err := caller.ForceCallWither(&p, "NameType", nil, false)
-		assert.EqualError(t, err, `cannot call wither (*interface {})."NameType": wither must return 1 value, given function returns 2 values`)
+		assert.EqualError(t, err, `cannot call wither (*interface {})."NameType": cannot call method (*interface {})."NameType": wither must return 1 value, given function returns 2 values`)
 		assert.Nil(t, r)
 	})
 }

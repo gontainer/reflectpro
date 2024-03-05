@@ -121,7 +121,16 @@ func NewCallWither( //nolint:ireturn
 	executed bool,
 	err error,
 ) {
-	_, _, _, _ = object, wither, args, convertArgs //nolint
+	defer func() {
+		if err != nil {
+			err = grouperror.Prefix(fmt.Sprintf("cannot call wither (%T).%+q: ", object, wither), err)
+		}
+	}()
 
-	panic("TODO")
+	results, err := callMethod(object, wither, args, convertArgs, caller.ValidatorWither)
+	if err != nil {
+		return nil, false, err
+	}
+
+	return results[0], true, nil
 }

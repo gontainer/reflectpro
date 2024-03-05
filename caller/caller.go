@@ -200,45 +200,15 @@ CallWither works similar to [CallMethod] with the difference the method must be 
 	    fmt.Printf("%+v", p2) // {name:Mary}
 	}
 */
-//nolint:wrapcheck
 func CallWither(object any, wither string, args []any, convertArgs bool) (_ any, err error) { //nolint:ireturn
-	defer func() {
-		if err != nil {
-			err = grouperror.Prefix(fmt.Sprintf("cannot call wither (%T).%+q: ", object, wither), err)
-		}
-	}()
+	r, _, err := NewCallWither(object, wither, args, convertArgs)
 
-	fn, err := caller.Method(object, wither)
-	if err != nil {
-		return nil, err
-	}
-
-	if err := caller.ValidatorWither.Validate(fn); err != nil {
-		return nil, err
-	}
-
-	r, err := caller.CallFunc(fn, args, convertArgs)
-	if err != nil {
-		return nil, err
-	}
-
-	return r[0], nil
+	return r, err
 }
 
 // ForceCallWither calls the given wither (see [CallWither]) using the same approach as [ForceCallMethod].
 //
-//nolint:wrapcheck
+// Deprecated.
 func ForceCallWither(object any, wither string, args []any, convertArgs bool) (_ any, err error) { //nolint:ireturn
-	defer func() {
-		if err != nil {
-			err = grouperror.Prefix(fmt.Sprintf("cannot call wither (%T).%+q: ", object, wither), err)
-		}
-	}()
-
-	r, err := caller.ValidateAndForceCallMethod(object, wither, args, convertArgs, caller.ValidatorWither)
-	if err != nil {
-		return nil, err
-	}
-
-	return r[0], nil
+	return CallWither(object, wither, args, convertArgs)
 }
