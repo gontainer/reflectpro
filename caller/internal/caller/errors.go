@@ -26,4 +26,5 @@ import (
 
 var (
 	ErrInvalidMethod = errors.New("invalid method")
+	ErrInvalidObject = errors.New("invalid object")
 )
