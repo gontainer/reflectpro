@@ -20,9 +20,24 @@
 
 package caller
 
-import (
-	"github.com/gontainer/grouperror"
-)
+type callerError struct {
+	error
+}
+
+func newCallerError(error error) *callerError {
+	return &callerError{error: error}
+}
+
+func (e *callerError) Collection() []error {
+	return []error{e.error}
+}
+
+func (e *callerError) Unwrap() error {
+	return e.error
+}
+
+//nolint
+// TODO change the doc comment for [ProviderError]
 
 /*
 ProviderError wraps errors returned by providers in [CallProvider].
@@ -46,17 +61,9 @@ ProviderError wraps errors returned by providers in [CallProvider].
 	}
 */
 type ProviderError struct {
-	error
+	*callerError
 }
 
 func newProviderError(err error) *ProviderError {
-	return &ProviderError{error: err}
-}
-
-func (e *ProviderError) Collection() []error {
-	return grouperror.Collection(e.error)
-}
-
-func (e *ProviderError) Unwrap() error {
-	return e.error
+	return &ProviderError{callerError: newCallerError(err)}
 }

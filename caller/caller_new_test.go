@@ -21,6 +21,7 @@
 package caller_test
 
 import (
+	"database/sql"
 	"testing"
 
 	"github.com/gontainer/reflectpro/caller"
@@ -41,9 +42,9 @@ func (c character) GetName() string {
 	return c.name
 }
 
-type Caller struct{}
+type callerStrct struct{}
 
-func (*Caller) Call(fn func()) {
+func (*callerStrct) Call(fn func()) {
 	fn()
 }
 
@@ -71,6 +72,14 @@ func TestNewCallMethod_error(t *testing.T) {
 		require.EqualError(t, err, `cannot call method (**struct {})."Do": (*struct {})."Do": invalid method`)
 	})
 
+	t.Run("Invalid method #2", func(t *testing.T) {
+		t.Parallel()
+
+		object := struct{}{}
+		_, err := caller.NewCallMethod(&object, "Do", nil, true)
+		require.EqualError(t, err, `cannot call method (*struct {})."Do": (*struct {})."Do": invalid method`)
+	})
+
 	t.Run("Cannot convert args", func(t *testing.T) {
 		t.Parallel()
 
@@ -91,7 +100,8 @@ func TestNewCallMethod_error(t *testing.T) {
 		require.EqualError(
 			t,
 			err,
-			`cannot call method (*caller_test.character)."SetName": arg0: value of type struct {} is not assignable to type string`, //nolint:lll
+			`cannot call method (*caller_test.character)."SetName": `+
+				`arg0: value of type struct {} is not assignable to type string`,
 		)
 	})
 
@@ -170,6 +180,19 @@ func TestNewCallMethod_okPointer(t *testing.T) {
 		assert.Equal(t, actual, "Thor")
 	})
 
+	t.Run("Pointer to pointer to pointer to pointer", func(t *testing.T) {
+		t.Parallel()
+
+		tmp := &character{}
+		tmp2 := &tmp
+		c := &tmp2
+
+		_, err := caller.NewCallMethod(&c, "SetName", []any{"Thor"}, true)
+		require.NoError(t, err)
+		actual, _ := getter.Get(c, "name")
+		assert.Equal(t, actual, "Thor")
+	})
+
 	t.Run("Pointer to any", func(t *testing.T) {
 		t.Parallel()
 
@@ -208,14 +231,15 @@ func TestNewCallMethod_okPointer(t *testing.T) {
 		t.Parallel()
 
 		var (
-			c        *Caller
+			c        *callerStrct
 			executed = false
-			arg      = func() {
+
+			callee = func() {
 				executed = true
 			}
 		)
 
-		_, err := caller.NewCallMethod(c, "Call", []any{arg}, false)
+		_, err := caller.NewCallMethod(c, "Call", []any{callee}, false)
 		require.NoError(t, err)
 		assert.True(t, executed)
 	})
@@ -236,5 +260,78 @@ func TestNewCallMethod_okPointer(t *testing.T) {
 		r, err := caller.NewCallMethod(&c, "GetName", nil, false)
 		require.NoError(t, err)
 		assert.Equal(t, []any{"Thor"}, r)
+	})
+}
+
+type provider struct {
+	fn func(...any) (any, error)
+}
+
+func (p provider) Provide(args ...any) (any, error) {
+	return p.fn(args...)
+}
+
+func TestNewCallProviderMethod_ok(t *testing.T) {
+	t.Parallel()
+
+	t.Run("2+2=4", func(t *testing.T) {
+		t.Parallel()
+
+		provider := provider{
+			fn: func(args ...any) (any, error) {
+				require.Equal(t, []any{2, 2}, args)
+
+				return 4, nil
+			},
+		}
+
+		result, executed, err := caller.NewCallProviderMethod(provider, "Provide", []any{2, 2}, true)
+		require.NoError(t, err)
+		assert.True(t, executed)
+		assert.Equal(t, 4, result)
+	})
+}
+
+func TestNewCallProviderMethod_error(t *testing.T) {
+	t.Parallel()
+
+	t.Run("Not assignable args", func(t *testing.T) {
+		t.Parallel()
+
+		db := &sql.DB{}
+		result, executed, err := caller.NewCallProviderMethod(
+			db,
+			"BeginTx",
+			[]any{"start", nil},
+			false,
+		)
+		require.EqualError(
+			t,
+			err,
+			`cannot call provider (*sql.DB)."BeginTx": cannot call method (*sql.DB)."BeginTx": `+
+				`arg0: value of type string is not assignable to type context.Context`,
+		)
+		require.False(t, executed)
+		assert.Nil(t, result)
+	})
+
+	t.Run("Cannot convert args", func(t *testing.T) {
+		t.Parallel()
+
+		db := &sql.DB{}
+		result, executed, err := caller.NewCallProviderMethod(
+			db,
+			"BeginTx",
+			[]any{"start", nil},
+			true,
+		)
+		require.EqualError(
+			t,
+			err,
+			`cannot call provider (*sql.DB)."BeginTx": cannot call method (*sql.DB)."BeginTx": `+
+				`arg0: cannot convert string to context.Context`,
+		)
+		require.False(t, executed)
+		assert.Nil(t, result)
 	})
 }
