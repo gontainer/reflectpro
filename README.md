@@ -14,12 +14,20 @@ Simple, elegant, and intuitive [callers](caller), [copiers](copier), [getters](g
 ## Caller
 
 ```go
-sum := func(a, b int) int {
-    return a + b
+type Person struct {
+	name string
 }
 
-returns, _ := caller.Call(sum, []any{2, 3}, false)
-fmt.Println(returns) // [5]
+func (p *Person) SetName(n string) {
+	p.name = n
+}
+
+func ExampleCallMethod() {
+	p := &Person{}
+	_, _ = caller.CallMethod(p, "SetName", []any{"Mary"}, false)
+	fmt.Println(p.name)
+	// Output: Mary
+}
 ```
 
 ## Copier
