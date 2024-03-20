@@ -8,3 +8,52 @@
 
 Simple, elegant, and intuitive [callers](caller), [copiers](copier), [getters](getter) and [setters](setter).
 <br/>This package has been extracted from [github.com/gontainer/gontainer-helpers](https://github.com/gontainer/gontainer-helpers).
+
+## Examples
+
+## Caller
+
+```go
+sum := func(a, b int) int {
+    return a + b
+}
+
+returns, _ := caller.Call(sum, []any{2, 3}, false)
+fmt.Println(returns) // [5]
+```
+
+## Copier
+
+```go
+var (
+    from = []any{int(1), uint(2), float32(3), float64(4)}
+    to   []uint64
+)
+_ = copier.Copy(from, &to, true) // convert
+fmt.Printf("%#v\n", to)
+// Output: []uint64{0x1, 0x2, 0x3, 0x4}
+```
+
+## Getter
+
+```go
+person := struct {
+    name string
+}{
+    name: "Mary",
+}
+v, _ := getter.Get(person, "name")
+fmt.Println(v)
+// Output: Mary
+```
+
+## Setter
+
+```go
+type Person struct {
+    Name string
+}
+p := Person{}
+_ = setter.Set(&p, "Name", "Jane", false)
+fmt.Println(p) // {Jane}
+```
