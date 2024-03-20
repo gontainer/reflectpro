@@ -7,7 +7,6 @@
 # Reflectpro
 
 Simple, elegant, and intuitive [callers](caller), [copiers](copier), [getters](getter) and [setters](setter).
-<br/>This package has been extracted from [github.com/gontainer/gontainer-helpers](https://github.com/gontainer/gontainer-helpers).
 
 ## Examples
 
