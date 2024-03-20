@@ -6,9 +6,6 @@ issues:
     - path: _test\.go
       linters:
         - exhaustruct
-    - path: caller/constraints_test\.go
-      linters:
-        - lll
     - path: caller/caller_test\.go
       linters:
         - lll
