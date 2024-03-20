@@ -57,8 +57,8 @@ ProviderError wraps errors returned by providers in [CallProvider].
 	_, executed, err := caller.CallProvider(p, nil, false)
 	if err != nil {
 		if executed {
-			errors.As(err, &providerErr)
 			var providerErr *caller.ProviderError
+			errors.As(err, &providerErr)
 			fmt.Println("provider returned error:", providerErr.Unwrap())
 		} else {
 			fmt.Println("provider wasn't invoked:", err)
