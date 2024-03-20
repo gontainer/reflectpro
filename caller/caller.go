@@ -60,7 +60,7 @@ The second return value which is optional must be a type of error.
 
 Whenever it returns a non-nil error, the return "executed" informs whether the error has been returned by the provider,
 or not.
-Whenever it returns a nil error, the return "executed"equals false.
+Whenever it returns a nil error, the return "executed" equals false.
 
 See [ProviderError].
 

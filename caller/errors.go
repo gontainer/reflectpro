@@ -28,10 +28,17 @@ func newCallerError(err error) *callerError {
 	return &callerError{error: err}
 }
 
+// Collection returns a 1-length-slice with the parent error,
+// to support [gontainer/grouperror].
+//
+// See https://github.com/gontainer/grouperror.
 func (e *callerError) Collection() []error {
 	return []error{e.error}
 }
 
+// Unwrap returns the parent error.
+//
+// See [errors.Unwrap].
 func (e *callerError) Unwrap() error {
 	return e.error
 }
