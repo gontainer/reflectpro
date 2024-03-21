@@ -86,3 +86,20 @@ func ExampleSet_typeMismatchingConvert() {
 	fmt.Println(person.name)
 	// Output: Jane
 }
+
+func ExampleSet_unaddressableValue() {
+	var person any
+
+	person = struct {
+		firstname string
+		lastname  string
+	}{
+		firstname: "Jane",
+	}
+
+	_ = setter.Set(&person, "lastname", "Doe", false)
+	fmt.Println(person)
+
+	// Output:
+	// {Jane Doe}
+}

@@ -56,11 +56,17 @@ fmt.Println(v)
 
 ## Setter
 
+In the following example, we have a pointer to `any` that stores a `struct`,
+instead of having a direct pointer to a `struct`. Since it is an `unaddressable value`,
+the `reflect` package from the standard library does not allow assigning a new value to this field.
+**Setter** handles that by creating an addressable copy.
+
 ```go
-type Person struct {
-    Name string
-}
-p := Person{}
-_ = setter.Set(&p, "Name", "Jane", false)
-fmt.Println(p) // {Jane}
+var person any
+person = struct {
+    name string
+}{}
+_ = setter.Set(&person, "name", "Mary", false)
+fmt.Println(person)
+// Output: {Mary}
 ```
