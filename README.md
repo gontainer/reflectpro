@@ -49,6 +49,8 @@ fmt.Printf("%#v\n", to)
 
 ## Getter
 
+In the following example, we read an unexported field of the given struct.
+
 ```go
 person := struct {
     name string
