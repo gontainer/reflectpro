@@ -87,6 +87,7 @@ func ExampleSet_typeMismatchingConvert() {
 	// Output: Jane
 }
 
+//nolint:gosimple
 func ExampleSet_unaddressableValue() {
 	var person any
 
