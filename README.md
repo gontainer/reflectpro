@@ -12,20 +12,26 @@ Simple, elegant, and intuitive [callers](caller), [copiers](copier), [getters](g
 
 ## Caller
 
+In the following example, we have a pointer to `any` that stores a `struct`,
+instead of having a direct pointer to a `struct`.
+The receiver is a pointer, so eventually we cannot call the given method.
+**Caller** handles that by creating a pointer to a copy of that value.
+
 ```go
 type Person struct {
 	name string
+	age  int
 }
 
 func (p *Person) SetName(n string) {
 	p.name = n
 }
 
-func ExampleCallMethod() {
-	p := &Person{}
+func Example() {
+	var p any = &Person{age: 25}
 	_, _ = caller.CallMethod(p, "SetName", []any{"Mary"}, false)
-	fmt.Println(p.name)
-	// Output: Mary
+	fmt.Printf("%+v\n", p)
+	// Output: &{name:Mary age:25}
 }
 ```
 

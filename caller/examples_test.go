@@ -28,10 +28,11 @@ import (
 
 type Person struct {
 	name string
+	age  int
 }
 
-func NewPerson(name string) *Person {
-	return &Person{name: name}
+func NewPerson(name string, age int) *Person {
+	return &Person{name: name, age: age}
 }
 
 func (p *Person) SetName(n string) {
@@ -45,10 +46,10 @@ func (p Person) WithName(n string) Person {
 }
 
 func ExampleCall_ok() {
-	p := &Person{}
+	p := &Person{age: 22}
 	_, _ = caller.Call(p.SetName, []any{"Mary"}, false)
-	fmt.Println(p.name)
-	// Output: Mary
+	fmt.Printf("%+v\n", p)
+	// Output: &{name:Mary age:22}
 }
 
 func ExampleCall_returnValue() {
@@ -84,21 +85,28 @@ func ExampleCall_error2() {
 }
 
 func ExampleCallProvider() {
-	p, _, _ := caller.CallProvider(NewPerson, []any{"Mary"}, false)
-	fmt.Printf("%+v", p)
-	// Output: &{name:Mary}
+	p, _, _ := caller.CallProvider(NewPerson, []any{"Mary", 21}, false)
+	fmt.Printf("%+v\n", p)
+	// Output: &{name:Mary age:21}
 }
 
 func ExampleCallMethod() {
-	p := &Person{}
+	p := &Person{age: 23}
 	_, _ = caller.CallMethod(p, "SetName", []any{"Mary"}, false)
-	fmt.Println(p.name)
-	// Output: Mary
+	fmt.Printf("%+v\n", p)
+	// Output: &{name:Mary age:23}
+}
+
+func ExampleCallMethod_unaddressable() {
+	var p any = &Person{age: 25}
+	_, _ = caller.CallMethod(p, "SetName", []any{"Mary"}, false)
+	fmt.Printf("%+v\n", p)
+	// Output: &{name:Mary age:25}
 }
 
 func ExampleCallWither() {
-	p := Person{}
+	var p any = Person{age: 30}
 	p2, _ := caller.CallWither(p, "WithName", []any{"Mary"}, false)
-	fmt.Printf("%+v", p2)
-	// Output: {name:Mary}
+	fmt.Printf("%+v\n", p2)
+	// Output: {name:Mary age:30}
 }
