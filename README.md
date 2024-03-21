@@ -15,9 +15,9 @@ Simple, elegant, and intuitive [callers](caller), [copiers](copier), [getters](g
 In the following example, we have a pointer to `any` that stores a `struct`,
 instead of having a direct pointer to a `struct`.
 The receiver is a pointer, so eventually we cannot call the given method.
-**Caller** handles that by creating a pointer to a copy of that value.
+`Caller` handles that by creating a pointer to a copy of that value.
 
-```go
+```
 type Person struct {
 	name string
 	age  int
@@ -28,7 +28,8 @@ func (p *Person) SetName(n string) {
 }
 
 func Example() {
-	var p any = &Person{age: 25}
+	var p any
+	p := &Person{age: 25}
 	_, _ = caller.CallMethod(p, "SetName", []any{"Mary"}, false)
 	fmt.Printf("%+v\n", p)
 	// Output: &{name:Mary age:25}
@@ -67,7 +68,7 @@ fmt.Println(v)
 In the following example, we have a pointer to `any` that stores a `struct`,
 instead of having a direct pointer to a `struct`. Since it is an `unaddressable value`,
 the `reflect` package from the standard library does not allow assigning a new value to this field.
-**Setter** handles that by creating an addressable copy.
+`Setter` handles that by creating an addressable copy.
 
 ```go
 var person any
