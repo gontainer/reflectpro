@@ -21,7 +21,9 @@
 package setter
 
 import (
-	"github.com/gontainer/reflectpro/internal/reflect"
+	"reflect"
+
+	intReflect "github.com/gontainer/reflectpro/internal/reflect"
 )
 
 /*
@@ -37,5 +39,33 @@ Unexported fields are supported.
 	fmt.Println(p) // {Jane}
 */
 func Set(strct any, field string, val any, convert bool) error {
-	return reflect.Set(strct, field, val, convert)
+	return intReflect.Set(strct, field, val, convert)
+}
+
+type CallbackOption func(*callbackConfig)
+
+type callbackConfig struct {
+	convertType      bool
+	convertToPointer bool
+}
+
+func ConvertType(cfg *callbackConfig) {
+	cfg.convertType = true
+}
+
+func ConvertToPointer(cfg *callbackConfig) {
+	cfg.convertToPointer = true
+
+}
+
+// SetByCallback invokes callback on the all fields of the given struct.
+// If you want to modify the value of the given field, the callback must return that value and `ok == true`.
+func SetByCallback(strct any, callback func(field reflect.StructField) (_ any, ok bool), opts ...CallbackOption) error {
+	var cfg callbackConfig
+
+	for _, o := range opts {
+		o(&cfg)
+	}
+
+	return intReflect.SetByCallback(strct, callback, cfg.convertType, cfg.convertToPointer)
 }
