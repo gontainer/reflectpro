@@ -477,6 +477,23 @@ func TestIterateFields(t *testing.T) {
 					age:  30,
 				},
 			},
+			{
+				strct: person{},
+				callback: func(f stdReflect.StructField, value interface{}) (_ any, set bool) {
+					if f.Name == "Name" {
+						return "Jane", true
+					}
+
+					if f.Name == "age" {
+						return uint(30), true
+					}
+
+					return nil, false
+				},
+				convert:      false,
+				convertToPtr: false,
+				error:        `IterateFields: *interface {}: IterateFields: reflect_test.person: field 1 "age": value of type uint is not assignable to type uint8`,
+			},
 		}
 
 		for i, s := range scenarios {
