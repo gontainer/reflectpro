@@ -51,11 +51,11 @@ func ExampleSet() {
 		&p,
 		fields.Setter(func(path []reflect.StructField, value any) (_ any, ok bool) {
 			switch {
-			case fields.Path(path).CompareStrings("TrainingPlanMeta", "Name"):
+			case fields.Path(path).CompareNames("TrainingPlanMeta", "Name"):
 				return "My training plan", true
-			case fields.Path(path).CompareStrings("Monday", "Name"):
+			case fields.Path(path).CompareNames("Monday", "Name"):
 				return "pushups", true
-			case fields.Path(path).CompareStrings("Tuesday", "name"):
+			case fields.Path(path).CompareNames("Tuesday", "name"):
 				return "pullups", true
 			}
 
@@ -89,7 +89,7 @@ func ExampleSetUnexported() {
 	_ = fields.Iterate(
 		&p,
 		fields.Setter(func(path []reflect.StructField, value any) (_ any, ok bool) {
-			if fields.Path(path).CompareStrings("os") {
+			if fields.Path(path).CompareNames("os") {
 				return "Android", true
 			}
 
@@ -117,7 +117,7 @@ func ExamplePrefillNilStructs() {
 	_ = fields.Iterate(
 		&cfg,
 		fields.Setter(func(path []reflect.StructField, value any) (_ any, ok bool) {
-			if fields.Path(path).CompareStrings("MyCache", "TTL") {
+			if fields.Path(path).CompareNames("MyCache", "TTL") {
 				return time.Minute, true
 			}
 
