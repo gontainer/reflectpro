@@ -112,7 +112,7 @@ func Get(strct any, field string) (_ any, err error) { //nolint:cyclop,ireturn
 	return f.Interface(), nil
 }
 
-type FieldCallback = func(_ reflect.StructField, value any) (_ any, ok bool)
+type FieldCallback = func(_ reflect.StructField, value any) (_ any, set bool)
 
 func IterateFields(strct any, callback FieldCallback, convert bool, convertToPtr bool) (err error) {
 	strType := ""
@@ -178,7 +178,7 @@ func IterateFields(strct any, callback FieldCallback, convert bool, convertToPtr
 	case chain.equalTo(reflect.Struct):
 		strType = fmt.Sprintf("%T", reflect.Zero(reflectVal.Type()).Interface())
 		for i := 0; i < reflectVal.Type().NumField(); i++ {
-			if _, ok := callback(reflectVal.Type().Field(i), valueFromField(reflectVal, i)); ok {
+			if _, set := callback(reflectVal.Type().Field(i), valueFromField(reflectVal, i)); set {
 				return fmt.Errorf("pointer is required to set fields")
 			}
 		}
@@ -186,7 +186,7 @@ func IterateFields(strct any, callback FieldCallback, convert bool, convertToPtr
 	case chain.equalTo(reflect.Ptr, reflect.Struct):
 		strType = fmt.Sprintf("%T", reflect.Zero(reflectVal.Elem().Type()).Interface())
 		for i := 0; i < reflectVal.Elem().Type().NumField(); i++ {
-			if newVal, ok := callback(reflectVal.Elem().Type().Field(i), valueFromField(reflectVal.Elem(), i)); ok {
+			if newVal, set := callback(reflectVal.Elem().Type().Field(i), valueFromField(reflectVal.Elem(), i)); set {
 				f := reflectVal.Elem().Field(i)
 				if !f.CanSet() {
 					f = reflect.NewAt(f.Type(), unsafe.Pointer(f.UnsafeAddr())).Elem()

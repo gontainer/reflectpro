@@ -104,7 +104,7 @@ func iterate(strct any, cfg *config, path []reflect.StructField) error {
 
 	var getErr func() error
 
-	fn = func(f reflect.StructField, value any) (_ any, ok bool) {
+	fn = func(f reflect.StructField, value any) (_ any, set bool) {
 		if getErr != nil {
 			return nil, false
 		}
