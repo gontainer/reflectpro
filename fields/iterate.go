@@ -138,8 +138,7 @@ func iterate(strct any, cfg *config, path []reflect.StructField) error {
 
 				original := value
 
-				newPath := append(path, f)
-				if err := iterate(&value, cfg, newPath); err != nil {
+				if err := iterate(&value, cfg, append(path, f)); err != nil {
 					getErr = func() error {
 						return fmt.Errorf("%s: %w", f.Name, err)
 					}
