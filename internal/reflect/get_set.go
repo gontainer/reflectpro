@@ -136,10 +136,9 @@ func IterateFields(strct any, callback FieldCallback, convert bool, convertToPtr
 		return err
 	}
 
-	// TODO
-	//if chain[len(chain)-1] != reflect.Struct {
-	//	return fmt.Errorf("expected struct, %T given", strct)
-	//}
+	if chain[len(chain)-1] != reflect.Struct {
+		return fmt.Errorf("expected struct, %T given", strct)
+	}
 
 	// see [Set]
 	for {

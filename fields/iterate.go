@@ -127,9 +127,9 @@ func iterate(strct any, cfg *config, path []reflect.StructField) error {
 		// set poiner to a zero-value
 		if !setterHasBeenTriggered &&
 			cfg.prefillNilStructs &&
-			value == nil &&
-			f.Type.Kind() == reflect.Ptr && f.Type.Elem().Kind() == reflect.Struct {
-			value = reflect.New(f.Type.Elem())
+			f.Type.Kind() == reflect.Ptr && f.Type.Elem().Kind() == reflect.Struct &&
+			reflect.ValueOf(value).IsZero() {
+			value, setterHasBeenTriggered = reflect.New(f.Type.Elem()).Interface(), true
 		}
 
 		if cfg.recursive {

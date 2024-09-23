@@ -23,6 +23,7 @@ package fields_test
 import (
 	"fmt"
 	"reflect"
+	"time"
 
 	"github.com/davecgh/go-spew/spew"
 	"github.com/gontainer/reflectpro/fields"
@@ -114,4 +115,34 @@ func ExampleSetUnexported() {
 
 	// Output:
 	// Android
+}
+
+type MyCache struct {
+	TTL time.Duration
+}
+
+type MyConfig struct {
+	MyCache *MyCache
+}
+
+func ExamplePrefillNilStructs() {
+	cfg := MyConfig{}
+
+	_ = fields.Iterate(
+		&cfg,
+		fields.Setter(func(path []reflect.StructField, value any) (_ any, ok bool) {
+			if comparePaths(path, "MyCache", "TTL") {
+				return time.Minute, true
+			}
+
+			return nil, false
+		}),
+		fields.PrefillNilStructs(true),
+		fields.Recursive(),
+	)
+
+	fmt.Println(cfg.MyCache.TTL)
+
+	// Output:
+	// 1m0s
 }
