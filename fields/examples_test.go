@@ -44,20 +44,6 @@ type TrainingPlan struct {
 	Tuesday Exercise
 }
 
-func comparePaths(reflectPath []reflect.StructField, names ...string) bool {
-	if len(reflectPath) != len(names) {
-		return false
-	}
-
-	for i := 0; i < len(reflectPath); i++ {
-		if reflectPath[i].Name != names[i] {
-			return false
-		}
-	}
-
-	return true
-}
-
 func ExampleSet() {
 	p := TrainingPlan{}
 
@@ -65,11 +51,11 @@ func ExampleSet() {
 		&p,
 		fields.Setter(func(path []reflect.StructField, value any) (_ any, ok bool) {
 			switch {
-			case comparePaths(path, "TrainingPlanMeta", "Name"):
+			case fields.Path(path).CompareStrings("TrainingPlanMeta", "Name"):
 				return "My training plan", true
-			case comparePaths(path, "Monday", "Name"):
+			case fields.Path(path).CompareStrings("Monday", "Name"):
 				return "pushups", true
-			case comparePaths(path, "Tuesday", "name"):
+			case fields.Path(path).CompareStrings("Tuesday", "name"):
 				return "pullups", true
 			}
 
@@ -103,7 +89,7 @@ func ExampleSetUnexported() {
 	_ = fields.Iterate(
 		&p,
 		fields.Setter(func(path []reflect.StructField, value any) (_ any, ok bool) {
-			if path[len(path)-1].Name == "os" {
+			if fields.Path(path).CompareStrings("os") {
 				return "Android", true
 			}
 
@@ -131,7 +117,7 @@ func ExamplePrefillNilStructs() {
 	_ = fields.Iterate(
 		&cfg,
 		fields.Setter(func(path []reflect.StructField, value any) (_ any, ok bool) {
-			if comparePaths(path, "MyCache", "TTL") {
+			if fields.Path(path).CompareStrings("MyCache", "TTL") {
 				return time.Minute, true
 			}
 
