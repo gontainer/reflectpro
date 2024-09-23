@@ -218,7 +218,6 @@ func IterateFields(strct any, callback FieldCallback, convert bool, convertToPtr
 
 	case chain.equalTo(reflect.Ptr, reflect.Interface, reflect.Struct):
 		strType = fmt.Sprintf("%T", reflect.Zero(reflectVal.Type()).Interface())
-		// TODO remove recursion
 		v := reflectVal.Elem()
 		tmp := reflect.New(v.Elem().Type())
 		tmp.Elem().Set(v.Elem())
