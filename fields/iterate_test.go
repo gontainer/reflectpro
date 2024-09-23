@@ -193,7 +193,7 @@ func TestIterate(t *testing.T) {
 				},
 				input:  A{},
 				output: A{},
-				error:  `fields.Iterate: IterateFields: *interface {}: IterateFields: fields_test.C: field 0 "D": value of type int is not assignable to type string`,
+				error:  `fields.Iterate: B: C: IterateFields: *interface {}: IterateFields: fields_test.C: field 0 "D": value of type int is not assignable to type string`,
 			},
 			{
 				name: "Employee (embedded)",

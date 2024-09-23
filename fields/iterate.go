@@ -102,10 +102,10 @@ func Iterate(strct any, opts ...Option) (err error) {
 func iterate(strct any, cfg *config, path []reflect.StructField) error {
 	var fn intReflect.FieldCallback
 
-	var stopErr error
+	var getErr func() error
 
 	fn = func(f reflect.StructField, value interface{}) (_ interface{}, ok bool) {
-		if stopErr != nil {
+		if getErr != nil {
 			return nil, false
 		}
 
@@ -138,10 +138,11 @@ func iterate(strct any, cfg *config, path []reflect.StructField) error {
 
 				original := value
 
-				newPath := append(path, f) // TODO maybe copy instead of append
+				newPath := append(path, f)
 				if err := iterate(&value, cfg, newPath); err != nil {
-					// TODO decorate it
-					stopErr = err
+					getErr = func() error {
+						return fmt.Errorf("%s: %w", f.Name, err)
+					}
 
 					return nil, false
 				}
@@ -170,8 +171,8 @@ func iterate(strct any, cfg *config, path []reflect.StructField) error {
 		return err
 	}
 
-	if stopErr != nil {
-		return stopErr
+	if getErr != nil {
+		return getErr()
 	}
 
 	return nil
