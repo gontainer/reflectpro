@@ -165,3 +165,28 @@ func ExampleGetter() {
 	// Output:
 	// 1000000
 }
+
+type FeatureConfig struct {
+	Active *bool
+}
+
+func ExampleConvertToPointers() {
+	cfg := FeatureConfig{}
+
+	_ = fields.Iterate(
+		&cfg,
+		fields.Setter(func(path fields.Path, value interface{}) (_ interface{}, ok bool) {
+			if path.CompareNames("Active") {
+				return true, true
+			}
+
+			return nil, false
+		}),
+		fields.ConvertToPointers(),
+	)
+
+	fmt.Println(*cfg.Active)
+
+	// Output:
+	// true
+}

@@ -194,7 +194,7 @@ func IterateFields(strct any, callback FieldCallback, convert bool, convertToPtr
 
 				newRefVal, err := func() (reflect.Value, error) {
 					if convertToPtr && f.Kind() == reflect.Ptr && (newVal != nil || reflect.ValueOf(newVal).Kind() != reflect.Ptr) {
-						val, err := ValueOf(newVal, f.Elem().Type(), convert)
+						val, err := ValueOf(newVal, f.Type().Elem(), convert)
 						if err != nil {
 							return reflect.Value{}, err
 						}
