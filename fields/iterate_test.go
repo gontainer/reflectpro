@@ -122,7 +122,7 @@ func TestIterate(t *testing.T) {
 					fields.Setter(func(_ fields.Path, value any) (_ any, ok bool) {
 						return CustomString("Jane"), true
 					}),
-					fields.ConvertTypes(),
+					fields.ConvertTypes(true),
 				},
 				input: Person{},
 				output: Person{
@@ -153,7 +153,7 @@ func TestIterate(t *testing.T) {
 
 						return nil, false
 					}),
-					fields.Recursive(),
+					fields.Recursive(true),
 				},
 				input: A{},
 				output: A{
@@ -175,7 +175,7 @@ func TestIterate(t *testing.T) {
 
 						return nil, false
 					}),
-					fields.Recursive(),
+					fields.Recursive(true),
 				},
 				input:  A{},
 				output: A{},
@@ -194,7 +194,7 @@ func TestIterate(t *testing.T) {
 
 						return nil, false
 					}),
-					fields.Recursive(),
+					fields.Recursive(true),
 				},
 				input: Employee{},
 				output: Employee{
@@ -220,7 +220,7 @@ func TestIterate(t *testing.T) {
 
 						return nil, false
 					}),
-					fields.Recursive(),
+					fields.Recursive(true),
 				},
 				input: Team{},
 				output: Team{
@@ -256,7 +256,7 @@ func TestIterate(t *testing.T) {
 
 						return nil, false
 					}),
-					fields.Recursive(),
+					fields.Recursive(true),
 				},
 				input: Team{},
 				output: Team{
@@ -291,7 +291,7 @@ func TestIterate(t *testing.T) {
 
 						return nil, false
 					}),
-					fields.Recursive(),
+					fields.Recursive(true),
 				},
 				input: YY{},
 				output: YY{
@@ -317,7 +317,7 @@ func TestIterate(t *testing.T) {
 
 						return nil, false
 					}),
-					fields.Recursive(),
+					fields.Recursive(true),
 				},
 				input: YY{},
 				output: YY{

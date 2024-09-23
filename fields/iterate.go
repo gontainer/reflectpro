@@ -71,21 +71,21 @@ func Getter(fn func(_ Path, value any)) Option {
 	}
 }
 
-func ConvertTypes() Option {
+func ConvertTypes(v bool) Option {
 	return func(c *config) {
-		c.convertTypes = true
+		c.convertTypes = v
 	}
 }
 
-func ConvertToPointers() Option {
+func ConvertToPointers(v bool) Option {
 	return func(c *config) {
-		c.convertToPtr = true
+		c.convertToPtr = v
 	}
 }
 
-func Recursive() Option {
+func Recursive(v bool) Option {
 	return func(c *config) {
-		c.recursive = true
+		c.recursive = v
 	}
 }
 

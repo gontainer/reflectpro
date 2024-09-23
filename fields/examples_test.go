@@ -63,7 +63,7 @@ func ExampleSet() {
 
 			return nil, false
 		}),
-		fields.Recursive(),
+		fields.Recursive(true),
 	)
 
 	spew.Dump(p)
@@ -133,7 +133,7 @@ func ExamplePrefillNilStructs() {
 			return nil, false
 		}),
 		fields.PrefillNilStructs(true),
-		fields.Recursive(),
+		fields.Recursive(true),
 	)
 
 	fmt.Println(cfg.MyCache.TTL)
@@ -166,7 +166,7 @@ func ExampleGetter() {
 				_ = copier.Copy(value, &salary, false)
 			}
 		}),
-		fields.Recursive(),
+		fields.Recursive(true),
 	)
 
 	fmt.Println(salary)
@@ -189,7 +189,7 @@ func ExampleConvertToPointers() {
 
 			return nil, false
 		}),
-		fields.ConvertToPointers(), // this line will instruct the library to convert values to pointers
+		fields.ConvertToPointers(true), // this line will instruct the library to convert values to pointers
 	)
 
 	fmt.Println(*cfg.TTL)
@@ -238,7 +238,7 @@ func ExampleReadJSON() {
 
 			return nil, false
 		}),
-		fields.ConvertTypes(),
+		fields.ConvertTypes(true),
 	)
 
 	fmt.Printf("%+v\n", person)
