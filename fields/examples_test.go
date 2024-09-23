@@ -25,6 +25,7 @@ import (
 	"time"
 
 	"github.com/davecgh/go-spew/spew"
+	"github.com/gontainer/reflectpro/copier"
 	"github.com/gontainer/reflectpro/fields"
 )
 
@@ -130,4 +131,37 @@ func ExamplePrefillNilStructs() {
 
 	// Output:
 	// 1m0s
+}
+
+type CTO struct {
+	Salary int
+}
+
+type Company struct {
+	CTO CTO
+}
+
+func ExampleGetter() {
+	c := Company{
+		CTO: CTO{
+			Salary: 1000000,
+		},
+	}
+
+	var salary int
+
+	_ = fields.Iterate(
+		c,
+		fields.Getter(func(p fields.Path, value interface{}) {
+			if p.CompareNames("CTO", "Salary") {
+				_ = copier.Copy(value, &salary, false)
+			}
+		}),
+		fields.Recursive(),
+	)
+
+	fmt.Println(salary)
+
+	// Output:
+	// 1000000
 }
