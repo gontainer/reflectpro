@@ -134,7 +134,7 @@ func iterate(strct any, cfg *config, path []reflect.StructField) error {
 
 		if cfg.recursive {
 			if f.Type.Kind() == reflect.Struct || // value is a struct
-				(f.Type.Kind() == reflect.Ptr && f.Type.Elem().Kind() == reflect.Struct && value != nil) { // value is a pointer to a non-nil struct
+				(f.Type.Kind() == reflect.Ptr && f.Type.Elem().Kind() == reflect.Struct && !reflect.ValueOf(value).IsZero()) { // value is a pointer to a non-nil struct
 
 				original := value
 
