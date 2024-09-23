@@ -116,6 +116,13 @@ type MyConfig struct {
 func ExamplePrefillNilStructs() {
 	cfg := MyConfig{}
 
+	/*
+		cfg.MyCache equals nil, but line `fields.PrefillNilStructs(true)` instructs the library
+		to inject a pointer to the zero-value automatically, so we don't need to execute the following line manually:
+
+		cfg.MyCache = &MyCache{}
+	*/
+
 	_ = fields.Iterate(
 		&cfg,
 		fields.Setter(func(path fields.Path, value any) (_ any, ok bool) {
