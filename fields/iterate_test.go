@@ -106,7 +106,7 @@ func TestIterate(t *testing.T) {
 			{
 				name: "Person OK",
 				options: []fields.Option{
-					fields.Setter(func(_ fields.Path, value any) (_ any, ok bool) {
+					fields.Setter(func(_ fields.Path, value any) (_ any, set bool) {
 						return "Jane", true
 					}),
 				},
@@ -119,7 +119,7 @@ func TestIterate(t *testing.T) {
 			{
 				name: "Person OK (convert types)",
 				options: []fields.Option{
-					fields.Setter(func(_ fields.Path, value any) (_ any, ok bool) {
+					fields.Setter(func(_ fields.Path, value any) (_ any, set bool) {
 						return CustomString("Jane"), true
 					}),
 					fields.ConvertTypes(true),
@@ -133,7 +133,7 @@ func TestIterate(t *testing.T) {
 			{
 				name: "Person error (convert types)",
 				options: []fields.Option{
-					fields.Setter(func(_ fields.Path, value any) (_ any, ok bool) {
+					fields.Setter(func(_ fields.Path, value any) (_ any, set bool) {
 						return CustomString("Jane"), true
 					}),
 				},
@@ -146,7 +146,7 @@ func TestIterate(t *testing.T) {
 			{
 				name: "A.B.C.D OK",
 				options: []fields.Option{
-					fields.Setter(func(path fields.Path, value any) (_ any, ok bool) {
+					fields.Setter(func(path fields.Path, value any) (_ any, set bool) {
 						if path.EqualNames("B", "C", "D") {
 							return "Hello", true
 						}
@@ -168,7 +168,7 @@ func TestIterate(t *testing.T) {
 			{
 				name: "A.B.C.D error (convert types)",
 				options: []fields.Option{
-					fields.Setter(func(path fields.Path, value any) (_ any, ok bool) {
+					fields.Setter(func(path fields.Path, value any) (_ any, set bool) {
 						if path.EqualNames("B", "C", "D") {
 							return 5, true
 						}
@@ -184,7 +184,7 @@ func TestIterate(t *testing.T) {
 			{
 				name: "Employee (embedded)",
 				options: []fields.Option{
-					fields.Setter(func(path fields.Path, value any) (_ any, ok bool) {
+					fields.Setter(func(path fields.Path, value any) (_ any, set bool) {
 						switch {
 						case path.EqualNames("Person", "Name"):
 							return "Jane", true
@@ -208,7 +208,7 @@ func TestIterate(t *testing.T) {
 			{
 				name: "Team #1",
 				options: []fields.Option{
-					fields.Setter(func(path fields.Path, value any) (_ any, ok bool) {
+					fields.Setter(func(path fields.Path, value any) (_ any, set bool) {
 						switch {
 						case path.EqualNames("Lead", "Person", "Name"):
 							return "Jane", true
@@ -239,7 +239,7 @@ func TestIterate(t *testing.T) {
 			{
 				name: "Team #2",
 				options: []fields.Option{
-					fields.Setter(func(path fields.Path, value any) (_ any, ok bool) {
+					fields.Setter(func(path fields.Path, value any) (_ any, set bool) {
 						switch {
 						case path.EqualNames("Lead", "Role"):
 							return "Lead", true
@@ -275,7 +275,7 @@ func TestIterate(t *testing.T) {
 			{
 				name: "YY",
 				options: []fields.Option{
-					fields.Setter(func(path fields.Path, value any) (_ any, ok bool) {
+					fields.Setter(func(path fields.Path, value any) (_ any, set bool) {
 						if path.EqualNames("XX") {
 							return &XX{}, true
 						}
@@ -301,7 +301,7 @@ func TestIterate(t *testing.T) {
 			{
 				name: "YY",
 				options: []fields.Option{
-					fields.Setter(func(path fields.Path, value any) (_ any, ok bool) {
+					fields.Setter(func(path fields.Path, value any) (_ any, set bool) {
 						if path.EqualNames("XX") {
 							return &XX{}, true
 						}

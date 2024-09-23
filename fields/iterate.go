@@ -59,7 +59,7 @@ func PrefillNilStructs(v bool) Option {
 	}
 }
 
-func Setter(fn func(path Path, value any) (_ any, ok bool)) Option {
+func Setter(fn func(path Path, value any) (_ any, set bool)) Option {
 	return func(c *config) {
 		c.setter = fn
 	}

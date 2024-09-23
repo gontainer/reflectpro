@@ -51,7 +51,7 @@ func ExampleSet() {
 
 	_ = fields.Iterate(
 		&p,
-		fields.Setter(func(path fields.Path, _ any) (_ any, ok bool) {
+		fields.Setter(func(path fields.Path, _ any) (_ any, set bool) {
 			switch {
 			case path.EqualNames("TrainingPlanMeta", "Name"):
 				return "My training plan", true
@@ -90,7 +90,7 @@ func ExampleSetUnexported() {
 	p := Phone{}
 	_ = fields.Iterate(
 		&p,
-		fields.Setter(func(path fields.Path, _ any) (_ any, ok bool) {
+		fields.Setter(func(path fields.Path, _ any) (_ any, set bool) {
 			if path.EqualNames("os") {
 				return "Android", true
 			}
@@ -125,7 +125,7 @@ func ExamplePrefillNilStructs() {
 
 	_ = fields.Iterate(
 		&cfg,
-		fields.Setter(func(path fields.Path, _ any) (_ any, ok bool) {
+		fields.Setter(func(path fields.Path, _ any) (_ any, set bool) {
 			if path.EqualNames("MyCache", "TTL") {
 				return time.Minute, true
 			}
@@ -182,7 +182,7 @@ func ExampleConvertToPointers() {
 
 	_ = fields.Iterate(
 		&cfg,
-		fields.Setter(func(path fields.Path, _ any) (_ any, ok bool) {
+		fields.Setter(func(path fields.Path, _ any) (_ any, set bool) {
 			if path.EqualNames("TTL") {
 				return time.Minute, true // return a value
 			}
@@ -221,7 +221,7 @@ func ExampleReadJSON() {
 	// use struct tags, to determine the correct relations
 	_ = fields.Iterate(
 		&person,
-		fields.Setter(func(p fields.Path, _ any) (_ any, ok bool) {
+		fields.Setter(func(p fields.Path, _ any) (_ any, set bool) {
 			tag, ok := p[len(p)-1].Tag.Lookup("json")
 			if !ok {
 				return nil, false
@@ -245,4 +245,23 @@ func ExampleReadJSON() {
 
 	// Output:
 	// {Firstname:Jane Lastname:Doe Age:30 Bio:}
+}
+
+func ExampleBlank() {
+	var data struct {
+		_ int // fields.Iterate can access blank identifier
+	}
+
+	_ = fields.Iterate(&data, fields.Setter(func(path fields.Path, value any) (_ any, set bool) {
+		if path.EqualNames("_") {
+			return 10, true
+		}
+
+		return nil, false
+	}))
+
+	fmt.Println(data)
+
+	// Output:
+	// {10}
 }
