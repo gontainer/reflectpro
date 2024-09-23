@@ -459,7 +459,7 @@ func TestIterateFields(t *testing.T) {
 		}{
 			{
 				strct: person{},
-				callback: func(f stdReflect.StructField, value interface{}) (_ any, set bool) {
+				callback: func(f stdReflect.StructField, value any) (_ any, set bool) {
 					if f.Name == "Name" {
 						return "Jane", true
 					}
@@ -479,7 +479,7 @@ func TestIterateFields(t *testing.T) {
 			},
 			{
 				strct: person{},
-				callback: func(f stdReflect.StructField, value interface{}) (_ any, set bool) {
+				callback: func(f stdReflect.StructField, value any) (_ any, set bool) {
 					if f.Name == "Name" {
 						return "Jane", true
 					}
