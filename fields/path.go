@@ -4,6 +4,12 @@ import (
 	"reflect"
 )
 
+// Path is built over [reflect.StructField],
+// that exports us useful details like:
+//   - [reflect.StructField.Name]
+//   - [reflect.StructField.Anonymous]
+//   - [reflect.StructField.Tag]
+//   - [reflect.StructField.Type]
 type Path []reflect.StructField
 
 func (p Path) Names() []string {
