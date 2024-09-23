@@ -117,7 +117,7 @@ func ExamplePrefillNilStructs() {
 	cfg := MyConfig{}
 
 	/*
-		cfg.MyCache equals nil, but line `fields.PrefillNilStructs(true)` instructs the library
+		`cfg.MyCache` equals nil, but the line `fields.PrefillNilStructs(true)` instructs the library
 		to inject a pointer to the zero-value automatically, so we don't need to execute the following line manually:
 
 		cfg.MyCache = &MyCache{}
