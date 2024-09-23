@@ -21,7 +21,9 @@
 package fields_test
 
 import (
+	"encoding/json"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/davecgh/go-spew/spew"
@@ -189,4 +191,50 @@ func ExampleConvertToPointers() {
 
 	// Output:
 	// true
+}
+
+func ExampleReadJSON() {
+	var person struct {
+		Firstname string `json:"firstname"`
+		Lastname  string `json:"lastname"`
+		Age       uint   `json:"age"`
+		Bio       string `json:"-"`
+	}
+
+	js := `
+{
+	"firstname": "Jane",
+	"lastname": "Doe",
+	"age": 30,
+	"bio": "bio..."
+}`
+	var data map[string]any
+	_ = json.Unmarshal([]byte(js), &data)
+
+	_ = fields.Iterate(
+		&person,
+		fields.Setter(func(p fields.Path, value any) (_ any, ok bool) {
+			tag, ok := p[len(p)-1].Tag.Lookup("json")
+			if !ok {
+				return nil, false
+			}
+
+			name := strings.Split(tag, ",")[0]
+			if name == "-" {
+				return nil, false
+			}
+
+			if fromJSON, ok := data[name]; ok {
+				return fromJSON, true
+			}
+
+			return nil, false
+		}),
+		fields.ConvertTypes(),
+	)
+
+	fmt.Printf("%+v\n", person)
+
+	// Output:
+	// {Firstname:Jane Lastname:Doe Age:30 Bio:}
 }
