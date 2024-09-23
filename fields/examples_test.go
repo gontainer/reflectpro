@@ -53,11 +53,11 @@ func ExampleSet() {
 		&p,
 		fields.Setter(func(path fields.Path, value any) (_ any, ok bool) {
 			switch {
-			case path.CompareNames("TrainingPlanMeta", "Name"):
+			case path.EqualNames("TrainingPlanMeta", "Name"):
 				return "My training plan", true
-			case path.CompareNames("Monday", "Name"):
+			case path.EqualNames("Monday", "Name"):
 				return "pushups", true
-			case path.CompareNames("Tuesday", "name"):
+			case path.EqualNames("Tuesday", "name"):
 				return "pullups", true
 			}
 
@@ -91,7 +91,7 @@ func ExampleSetUnexported() {
 	_ = fields.Iterate(
 		&p,
 		fields.Setter(func(path fields.Path, value any) (_ any, ok bool) {
-			if path.CompareNames("os") {
+			if path.EqualNames("os") {
 				return "Android", true
 			}
 
@@ -119,7 +119,7 @@ func ExamplePrefillNilStructs() {
 	_ = fields.Iterate(
 		&cfg,
 		fields.Setter(func(path fields.Path, value any) (_ any, ok bool) {
-			if path.CompareNames("MyCache", "TTL") {
+			if path.EqualNames("MyCache", "TTL") {
 				return time.Minute, true
 			}
 
@@ -155,7 +155,7 @@ func ExampleGetter() {
 	_ = fields.Iterate(
 		c,
 		fields.Getter(func(p fields.Path, value any) {
-			if p.CompareNames("CTO", "Salary") {
+			if p.EqualNames("CTO", "Salary") {
 				_ = copier.Copy(value, &salary, false)
 			}
 		}),
@@ -176,7 +176,7 @@ func ExampleConvertToPointers() {
 	_ = fields.Iterate(
 		&cfg,
 		fields.Setter(func(path fields.Path, value any) (_ any, ok bool) {
-			if path.CompareNames("TTL") {
+			if path.EqualNames("TTL") {
 				return time.Minute, true // return a value
 			}
 

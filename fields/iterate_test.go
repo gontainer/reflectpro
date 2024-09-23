@@ -147,7 +147,7 @@ func TestIterate(t *testing.T) {
 				name: "A.B.C.D OK",
 				options: []fields.Option{
 					fields.Setter(func(path fields.Path, value any) (_ any, ok bool) {
-						if path.CompareNames("B", "C", "D") {
+						if path.EqualNames("B", "C", "D") {
 							return "Hello", true
 						}
 
@@ -169,7 +169,7 @@ func TestIterate(t *testing.T) {
 				name: "A.B.C.D error (convert types)",
 				options: []fields.Option{
 					fields.Setter(func(path fields.Path, value any) (_ any, ok bool) {
-						if path.CompareNames("B", "C", "D") {
+						if path.EqualNames("B", "C", "D") {
 							return 5, true
 						}
 
@@ -186,9 +186,9 @@ func TestIterate(t *testing.T) {
 				options: []fields.Option{
 					fields.Setter(func(path fields.Path, value any) (_ any, ok bool) {
 						switch {
-						case path.CompareNames("Person", "Name"):
+						case path.EqualNames("Person", "Name"):
 							return "Jane", true
-						case path.CompareNames("Role"):
+						case path.EqualNames("Role"):
 							return "Lead", true
 						}
 
@@ -210,11 +210,11 @@ func TestIterate(t *testing.T) {
 				options: []fields.Option{
 					fields.Setter(func(path fields.Path, value any) (_ any, ok bool) {
 						switch {
-						case path.CompareNames("Lead", "Person", "Name"):
+						case path.EqualNames("Lead", "Person", "Name"):
 							return "Jane", true
-						case path.CompareNames("Lead", "Role"):
+						case path.EqualNames("Lead", "Role"):
 							return "Lead", true
-						case path.CompareNames("TeamMeta", "Name"):
+						case path.EqualNames("TeamMeta", "Name"):
 							return "Hawkeye", true
 						}
 
@@ -241,16 +241,16 @@ func TestIterate(t *testing.T) {
 				options: []fields.Option{
 					fields.Setter(func(path fields.Path, value any) (_ any, ok bool) {
 						switch {
-						case path.CompareNames("Lead", "Role"):
+						case path.EqualNames("Lead", "Role"):
 							return "Lead", true
-						case path.CompareNames("Lead"):
+						case path.EqualNames("Lead"):
 							return Employee{
 								Person: Person{
 									Name: "Jane",
 								},
 								Role: "Lead",
 							}, true
-						case path.CompareNames("TeamMeta", "Name"):
+						case path.EqualNames("TeamMeta", "Name"):
 							return "Hawkeye", true
 						}
 
@@ -276,11 +276,11 @@ func TestIterate(t *testing.T) {
 				name: "YY",
 				options: []fields.Option{
 					fields.Setter(func(path fields.Path, value any) (_ any, ok bool) {
-						if path.CompareNames("XX") {
+						if path.EqualNames("XX") {
 							return &XX{}, true
 						}
 
-						if path.CompareNames("XX", "_") {
+						if path.EqualNames("XX", "_") {
 							switch path[len(path)-1].Type.Kind() {
 							case reflect.Int:
 								return 5, true
@@ -302,11 +302,11 @@ func TestIterate(t *testing.T) {
 				name: "YY",
 				options: []fields.Option{
 					fields.Setter(func(path fields.Path, value any) (_ any, ok bool) {
-						if path.CompareNames("XX") {
+						if path.EqualNames("XX") {
 							return &XX{}, true
 						}
 
-						if path.CompareNames("XX", "_") {
+						if path.EqualNames("XX", "_") {
 							switch path[len(path)-1].Type.Kind() {
 							case reflect.Int:
 								return 7, true

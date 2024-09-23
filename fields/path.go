@@ -39,7 +39,7 @@ func (p Path) HasSuffix(path ...string) bool {
 	return true
 }
 
-func (p Path) CompareNames(path ...string) bool {
+func (p Path) EqualNames(path ...string) bool {
 	if len(p) != len(path) {
 		return false
 	}
