@@ -22,7 +22,6 @@ package fields_test
 
 import (
 	"fmt"
-	"reflect"
 	"time"
 
 	"github.com/davecgh/go-spew/spew"
@@ -49,13 +48,13 @@ func ExampleSet() {
 
 	_ = fields.Iterate(
 		&p,
-		fields.Setter(func(path []reflect.StructField, value any) (_ any, ok bool) {
+		fields.Setter(func(path fields.Path, value any) (_ any, ok bool) {
 			switch {
-			case fields.Path(path).CompareNames("TrainingPlanMeta", "Name"):
+			case path.CompareNames("TrainingPlanMeta", "Name"):
 				return "My training plan", true
-			case fields.Path(path).CompareNames("Monday", "Name"):
+			case path.CompareNames("Monday", "Name"):
 				return "pushups", true
-			case fields.Path(path).CompareNames("Tuesday", "name"):
+			case path.CompareNames("Tuesday", "name"):
 				return "pullups", true
 			}
 
@@ -88,8 +87,8 @@ func ExampleSetUnexported() {
 	p := Phone{}
 	_ = fields.Iterate(
 		&p,
-		fields.Setter(func(path []reflect.StructField, value any) (_ any, ok bool) {
-			if fields.Path(path).CompareNames("os") {
+		fields.Setter(func(path fields.Path, value any) (_ any, ok bool) {
+			if path.CompareNames("os") {
 				return "Android", true
 			}
 
@@ -116,8 +115,8 @@ func ExamplePrefillNilStructs() {
 
 	_ = fields.Iterate(
 		&cfg,
-		fields.Setter(func(path []reflect.StructField, value any) (_ any, ok bool) {
-			if fields.Path(path).CompareNames("MyCache", "TTL") {
+		fields.Setter(func(path fields.Path, value any) (_ any, ok bool) {
+			if path.CompareNames("MyCache", "TTL") {
 				return time.Minute, true
 			}
 

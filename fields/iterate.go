@@ -28,8 +28,8 @@ import (
 )
 
 type config struct {
-	setter            func(path []reflect.StructField, value any) (_ any, ok bool)
-	getter            func(path []reflect.StructField, value any)
+	setter            func(_ Path, value any) (_ any, ok bool)
+	getter            func(_ Path, value any)
 	prefillNilStructs bool
 	convertTypes      bool
 	convertToPtr      bool
@@ -59,13 +59,13 @@ func PrefillNilStructs(v bool) Option {
 	}
 }
 
-func Setter(fn func(path []reflect.StructField, value any) (_ any, ok bool)) Option {
+func Setter(fn func(path Path, value any) (_ any, ok bool)) Option {
 	return func(c *config) {
 		c.setter = fn
 	}
 }
 
-func Getter(fn func(path []reflect.StructField, value any)) Option {
+func Getter(fn func(_ Path, value any)) Option {
 	return func(c *config) {
 		c.getter = fn
 	}

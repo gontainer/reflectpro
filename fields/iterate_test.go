@@ -73,20 +73,6 @@ type YY struct {
 	*XX
 }
 
-func pathEquals(p []reflect.StructField, s ...string) bool {
-	if len(p) != len(s) {
-		return false
-	}
-
-	for i, f := range p {
-		if f.Name != s[i] {
-			return false
-		}
-	}
-
-	return true
-}
-
 func setValueByFieldIndex(ptrStruct any, fieldIndex int, value any) {
 	f := reflect.ValueOf(ptrStruct).Elem().Field(fieldIndex)
 	f = reflect.NewAt(f.Type(), unsafe.Pointer(f.UnsafeAddr())).Elem()
@@ -120,7 +106,7 @@ func TestIterate(t *testing.T) {
 			{
 				name: "Person OK",
 				options: []fields.Option{
-					fields.Setter(func(_ []reflect.StructField, value any) (_ any, ok bool) {
+					fields.Setter(func(_ fields.Path, value any) (_ any, ok bool) {
 						return "Jane", true
 					}),
 				},
@@ -133,7 +119,7 @@ func TestIterate(t *testing.T) {
 			{
 				name: "Person OK (convert types)",
 				options: []fields.Option{
-					fields.Setter(func(_ []reflect.StructField, value any) (_ any, ok bool) {
+					fields.Setter(func(_ fields.Path, value any) (_ any, ok bool) {
 						return CustomString("Jane"), true
 					}),
 					fields.ConvertTypes(),
@@ -147,7 +133,7 @@ func TestIterate(t *testing.T) {
 			{
 				name: "Person error (convert types)",
 				options: []fields.Option{
-					fields.Setter(func(_ []reflect.StructField, value any) (_ any, ok bool) {
+					fields.Setter(func(_ fields.Path, value any) (_ any, ok bool) {
 						return CustomString("Jane"), true
 					}),
 				},
@@ -160,8 +146,8 @@ func TestIterate(t *testing.T) {
 			{
 				name: "A.B.C.D OK",
 				options: []fields.Option{
-					fields.Setter(func(path []reflect.StructField, value interface{}) (_ interface{}, ok bool) {
-						if pathEquals(path, "B", "C", "D") {
+					fields.Setter(func(path fields.Path, value interface{}) (_ interface{}, ok bool) {
+						if path.CompareNames("B", "C", "D") {
 							return "Hello", true
 						}
 
@@ -182,8 +168,8 @@ func TestIterate(t *testing.T) {
 			{
 				name: "A.B.C.D error (convert types)",
 				options: []fields.Option{
-					fields.Setter(func(path []reflect.StructField, value interface{}) (_ interface{}, ok bool) {
-						if pathEquals(path, "B", "C", "D") {
+					fields.Setter(func(path fields.Path, value interface{}) (_ interface{}, ok bool) {
+						if path.CompareNames("B", "C", "D") {
 							return 5, true
 						}
 
@@ -198,11 +184,11 @@ func TestIterate(t *testing.T) {
 			{
 				name: "Employee (embedded)",
 				options: []fields.Option{
-					fields.Setter(func(path []reflect.StructField, value interface{}) (_ any, ok bool) {
+					fields.Setter(func(path fields.Path, value interface{}) (_ any, ok bool) {
 						switch {
-						case pathEquals(path, "Person", "Name"):
+						case path.CompareNames("Person", "Name"):
 							return "Jane", true
-						case pathEquals(path, "Role"):
+						case path.CompareNames("Role"):
 							return "Lead", true
 						}
 
@@ -222,13 +208,13 @@ func TestIterate(t *testing.T) {
 			{
 				name: "Team #1",
 				options: []fields.Option{
-					fields.Setter(func(path []reflect.StructField, value interface{}) (_ interface{}, ok bool) {
+					fields.Setter(func(path fields.Path, value interface{}) (_ interface{}, ok bool) {
 						switch {
-						case pathEquals(path, "Lead", "Person", "Name"):
+						case path.CompareNames("Lead", "Person", "Name"):
 							return "Jane", true
-						case pathEquals(path, "Lead", "Role"):
+						case path.CompareNames("Lead", "Role"):
 							return "Lead", true
-						case pathEquals(path, "TeamMeta", "Name"):
+						case path.CompareNames("TeamMeta", "Name"):
 							return "Hawkeye", true
 						}
 
@@ -253,18 +239,18 @@ func TestIterate(t *testing.T) {
 			{
 				name: "Team #2",
 				options: []fields.Option{
-					fields.Setter(func(path []reflect.StructField, value interface{}) (_ interface{}, ok bool) {
+					fields.Setter(func(path fields.Path, value interface{}) (_ interface{}, ok bool) {
 						switch {
-						case pathEquals(path, "Lead", "Role"):
+						case path.CompareNames("Lead", "Role"):
 							return "Lead", true
-						case pathEquals(path, "Lead"):
+						case path.CompareNames("Lead"):
 							return Employee{
 								Person: Person{
 									Name: "Jane",
 								},
 								Role: "Lead",
 							}, true
-						case pathEquals(path, "TeamMeta", "Name"):
+						case path.CompareNames("TeamMeta", "Name"):
 							return "Hawkeye", true
 						}
 
@@ -289,12 +275,12 @@ func TestIterate(t *testing.T) {
 			{
 				name: "YY",
 				options: []fields.Option{
-					fields.Setter(func(path []reflect.StructField, value interface{}) (_ interface{}, ok bool) {
-						if pathEquals(path, "XX") {
+					fields.Setter(func(path fields.Path, value interface{}) (_ interface{}, ok bool) {
+						if path.CompareNames("XX") {
 							return &XX{}, true
 						}
 
-						if pathEquals(path, "XX", "_") {
+						if path.CompareNames("XX", "_") {
 							switch path[len(path)-1].Type.Kind() {
 							case reflect.Int:
 								return 5, true
@@ -315,12 +301,12 @@ func TestIterate(t *testing.T) {
 			{
 				name: "YY",
 				options: []fields.Option{
-					fields.Setter(func(path []reflect.StructField, value interface{}) (_ interface{}, ok bool) {
-						if pathEquals(path, "XX") {
+					fields.Setter(func(path fields.Path, value interface{}) (_ interface{}, ok bool) {
+						if path.CompareNames("XX") {
 							return &XX{}, true
 						}
 
-						if pathEquals(path, "XX", "_") {
+						if path.CompareNames("XX", "_") {
 							switch path[len(path)-1].Type.Kind() {
 							case reflect.Int:
 								return 7, true
