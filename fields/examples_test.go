@@ -152,7 +152,7 @@ func ExampleGetter() {
 
 	_ = fields.Iterate(
 		c,
-		fields.Getter(func(p fields.Path, value interface{}) {
+		fields.Getter(func(p fields.Path, value any) {
 			if p.CompareNames("CTO", "Salary") {
 				_ = copier.Copy(value, &salary, false)
 			}
@@ -175,7 +175,7 @@ func ExampleConvertToPointers() {
 
 	_ = fields.Iterate(
 		&cfg,
-		fields.Setter(func(path fields.Path, value interface{}) (_ interface{}, ok bool) {
+		fields.Setter(func(path fields.Path, value any) (_ any, ok bool) {
 			if path.CompareNames("Active") {
 				return true, true
 			}

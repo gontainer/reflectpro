@@ -146,7 +146,7 @@ func TestIterate(t *testing.T) {
 			{
 				name: "A.B.C.D OK",
 				options: []fields.Option{
-					fields.Setter(func(path fields.Path, value interface{}) (_ interface{}, ok bool) {
+					fields.Setter(func(path fields.Path, value any) (_ any, ok bool) {
 						if path.CompareNames("B", "C", "D") {
 							return "Hello", true
 						}
@@ -168,7 +168,7 @@ func TestIterate(t *testing.T) {
 			{
 				name: "A.B.C.D error (convert types)",
 				options: []fields.Option{
-					fields.Setter(func(path fields.Path, value interface{}) (_ interface{}, ok bool) {
+					fields.Setter(func(path fields.Path, value any) (_ any, ok bool) {
 						if path.CompareNames("B", "C", "D") {
 							return 5, true
 						}
@@ -184,7 +184,7 @@ func TestIterate(t *testing.T) {
 			{
 				name: "Employee (embedded)",
 				options: []fields.Option{
-					fields.Setter(func(path fields.Path, value interface{}) (_ any, ok bool) {
+					fields.Setter(func(path fields.Path, value any) (_ any, ok bool) {
 						switch {
 						case path.CompareNames("Person", "Name"):
 							return "Jane", true
@@ -208,7 +208,7 @@ func TestIterate(t *testing.T) {
 			{
 				name: "Team #1",
 				options: []fields.Option{
-					fields.Setter(func(path fields.Path, value interface{}) (_ interface{}, ok bool) {
+					fields.Setter(func(path fields.Path, value any) (_ any, ok bool) {
 						switch {
 						case path.CompareNames("Lead", "Person", "Name"):
 							return "Jane", true
@@ -239,7 +239,7 @@ func TestIterate(t *testing.T) {
 			{
 				name: "Team #2",
 				options: []fields.Option{
-					fields.Setter(func(path fields.Path, value interface{}) (_ interface{}, ok bool) {
+					fields.Setter(func(path fields.Path, value any) (_ any, ok bool) {
 						switch {
 						case path.CompareNames("Lead", "Role"):
 							return "Lead", true
@@ -275,7 +275,7 @@ func TestIterate(t *testing.T) {
 			{
 				name: "YY",
 				options: []fields.Option{
-					fields.Setter(func(path fields.Path, value interface{}) (_ interface{}, ok bool) {
+					fields.Setter(func(path fields.Path, value any) (_ any, ok bool) {
 						if path.CompareNames("XX") {
 							return &XX{}, true
 						}
@@ -301,7 +301,7 @@ func TestIterate(t *testing.T) {
 			{
 				name: "YY",
 				options: []fields.Option{
-					fields.Setter(func(path fields.Path, value interface{}) (_ interface{}, ok bool) {
+					fields.Setter(func(path fields.Path, value any) (_ any, ok bool) {
 						if path.CompareNames("XX") {
 							return &XX{}, true
 						}
