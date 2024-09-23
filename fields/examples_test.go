@@ -168,29 +168,27 @@ func ExampleGetter() {
 	// 1000000
 }
 
-type FeatureConfig struct {
-	Active *bool
-}
-
 func ExampleConvertToPointers() {
-	cfg := FeatureConfig{}
+	var cfg struct {
+		TTL *time.Duration // expect a pointer
+	}
 
 	_ = fields.Iterate(
 		&cfg,
 		fields.Setter(func(path fields.Path, value any) (_ any, ok bool) {
-			if path.CompareNames("Active") {
-				return true, true
+			if path.CompareNames("TTL") {
+				return time.Minute, true // return a value
 			}
 
 			return nil, false
 		}),
-		fields.ConvertToPointers(),
+		fields.ConvertToPointers(), // this line will instruct the library to convert values to pointers
 	)
 
-	fmt.Println(*cfg.Active)
+	fmt.Println(*cfg.TTL)
 
 	// Output:
-	// true
+	// 1m0s
 }
 
 func ExampleReadJSON() {
@@ -201,6 +199,7 @@ func ExampleReadJSON() {
 		Bio       string `json:"-"`
 	}
 
+	// read data from JSON...
 	js := `
 {
 	"firstname": "Jane",
@@ -211,6 +210,8 @@ func ExampleReadJSON() {
 	var data map[string]any
 	_ = json.Unmarshal([]byte(js), &data)
 
+	// populate the data from JSON to the `person` variable,
+	// use struct tags, to determine the correct relations
 	_ = fields.Iterate(
 		&person,
 		fields.Setter(func(p fields.Path, value any) (_ any, ok bool) {
