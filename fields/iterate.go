@@ -124,7 +124,7 @@ func iterate(strct any, cfg *config, path []reflect.StructField) error {
 			}
 		}
 
-		// set poiner to a zero-value
+		// set pointer to a zero-value
 		if !setterHasBeenTriggered &&
 			cfg.prefillNilStructs &&
 			f.Type.Kind() == reflect.Ptr && f.Type.Elem().Kind() == reflect.Struct &&
