@@ -22,7 +22,6 @@ package setter_test
 
 import (
 	"fmt"
-	"reflect"
 
 	"github.com/gontainer/reflectpro/setter"
 )
@@ -104,34 +103,4 @@ func ExampleSet_unaddressableValue() {
 
 	// Output:
 	// {Jane Doe}
-}
-
-func ExampleSetByCallback() {
-	var person struct {
-		Name string `custom:"name"`
-		Age  int    `custom:"age"`
-	}
-
-	config := map[string]any{
-		"name": "Jane",
-		"age":  25,
-	}
-
-	_ = setter.SetByCallback(
-		&person,
-		func(field reflect.StructField) (_ interface{}, ok bool) {
-			// check whether the given tag exists
-			tag, ok := field.Tag.Lookup("custom")
-			if !ok {
-				return nil, false
-			}
-
-			// check whether we have the desired value in the config
-			if val, ok := config[tag]; ok {
-				return val, ok
-			}
-
-			return nil, false
-		},
-	)
 }
