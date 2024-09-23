@@ -18,24 +18,6 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-package setter
+package fields_test
 
-import (
-	"github.com/gontainer/reflectpro/internal/reflect"
-)
-
-/*
-Set assigns the value `val` to the field `field` on the struct `strct`.
-If the fourth argument equals true, it converts the type whenever it is possible.
-Unexported fields are supported.
-
-	type Person struct {
-		Name string
-	}
-	p := Person{}
-	_ = setter.Set(&p, "Name", "Jane", false)
-	fmt.Println(p) // {Jane}
-*/
-func Set(strct any, field string, val any, convert bool) error {
-	return reflect.Set(strct, field, val, convert)
-}
+type any = interface{} //nolint

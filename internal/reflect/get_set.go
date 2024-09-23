@@ -112,6 +112,133 @@ func Get(strct any, field string) (_ any, err error) { //nolint:cyclop,ireturn
 	return f.Interface(), nil
 }
 
+type FieldCallback = func(_ reflect.StructField, value any) (_ any, ok bool)
+
+func IterateFields(strct any, callback FieldCallback, convert bool, convertToPtr bool) (err error) {
+	strType := ""
+
+	defer func() {
+		if err != nil {
+			if strType != "" {
+				err = fmt.Errorf("%s: %w", strType, err)
+			}
+			err = fmt.Errorf("IterateFields: %w", err)
+		}
+	}()
+
+	reflectVal := reflect.ValueOf(strct)
+	if !reflectVal.IsValid() {
+		return fmt.Errorf("expected struct, %T given", strct)
+	}
+
+	chain, err := ValueToKindChain(reflectVal)
+	if err != nil {
+		return err
+	}
+
+	// TODO
+	//if chain[len(chain)-1] != reflect.Struct {
+	//	return fmt.Errorf("expected struct, %T given", strct)
+	//}
+
+	// see [Set]
+	for {
+		switch {
+		case chain.Prefixed(reflect.Ptr, reflect.Ptr):
+			reflectVal = reflectVal.Elem()
+			chain = chain[1:]
+
+			continue
+		case chain.Prefixed(reflect.Ptr, reflect.Interface, reflect.Ptr):
+			reflectVal = reflectVal.Elem().Elem()
+			chain = chain[2:]
+
+			continue
+		}
+
+		break
+	}
+
+	valueFromField := func(strct reflect.Value, i int) any {
+		f := strct.Field(i)
+
+		if !f.CanSet() { // handle unexported fields
+			if !f.CanAddr() {
+				tmpReflectVal := reflect.New(strct.Type()).Elem()
+				tmpReflectVal.Set(strct)
+				f = tmpReflectVal.Field(i)
+			}
+
+			f = reflect.NewAt(f.Type(), unsafe.Pointer(f.UnsafeAddr())).Elem()
+		}
+
+		return f.Interface()
+	}
+
+	switch {
+	case chain.equalTo(reflect.Struct):
+		strType = fmt.Sprintf("%T", reflect.Zero(reflectVal.Type()).Interface())
+		for i := 0; i < reflectVal.Type().NumField(); i++ {
+			if _, ok := callback(reflectVal.Type().Field(i), valueFromField(reflectVal, i)); ok {
+				return fmt.Errorf("pointer is required to set fields")
+			}
+		}
+
+	case chain.equalTo(reflect.Ptr, reflect.Struct):
+		strType = fmt.Sprintf("%T", reflect.Zero(reflectVal.Elem().Type()).Interface())
+		for i := 0; i < reflectVal.Elem().Type().NumField(); i++ {
+			if newVal, ok := callback(reflectVal.Elem().Type().Field(i), valueFromField(reflectVal.Elem(), i)); ok {
+				f := reflectVal.Elem().Field(i)
+				if !f.CanSet() {
+					f = reflect.NewAt(f.Type(), unsafe.Pointer(f.UnsafeAddr())).Elem()
+				}
+
+				newRefVal, err := func() (reflect.Value, error) {
+					if convertToPtr && f.Kind() == reflect.Ptr && (newVal != nil || reflect.ValueOf(newVal).Kind() != reflect.Ptr) {
+						val, err := ValueOf(newVal, f.Elem().Type(), convert)
+						if err != nil {
+							return reflect.Value{}, err
+						}
+
+						ptr := reflect.New(val.Type())
+						ptr.Elem().Set(val)
+
+						return ptr, nil
+					}
+
+					return ValueOf(newVal, f.Type(), convert)
+				}()
+
+				if err != nil {
+					return fmt.Errorf("field %d %+q: %w", i, reflectVal.Elem().Type().Field(i).Name, err)
+				}
+
+				f.Set(newRefVal)
+			}
+		}
+
+	case chain.equalTo(reflect.Ptr, reflect.Interface, reflect.Struct):
+		strType = fmt.Sprintf("%T", reflect.Zero(reflectVal.Type()).Interface())
+		// TODO remove recursion
+		v := reflectVal.Elem()
+		tmp := reflect.New(v.Elem().Type())
+		tmp.Elem().Set(v.Elem())
+		if err := IterateFields(tmp.Interface(), callback, convert, convertToPtr); err != nil {
+			return err
+		}
+		v.Set(tmp.Elem())
+
+	default:
+		if err := ptrToNilStructError(strct); err != nil {
+			return err
+		}
+
+		return fmt.Errorf("expected struct or pointer to struct, %T given", strct)
+	}
+
+	return nil
+}
+
 //nolint:cyclop
 func Set(strct any, field string, val any, convert bool) (err error) {
 	defer func() {
