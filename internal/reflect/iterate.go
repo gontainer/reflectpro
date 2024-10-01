@@ -64,6 +64,7 @@ func IterateFields(strct any, callback FieldCallback, convert bool, convertToPtr
 	switch {
 	case chain.equalTo(reflect.Struct):
 		strType = fmt.Sprintf("%T", reflect.Zero(reflectVal.Type()).Interface())
+
 		for i := 0; i < reflectVal.Type().NumField(); i++ {
 			if _, set := callback(reflectVal.Type().Field(i), valueFromField(reflectVal, i)); set {
 				return fmt.Errorf("pointer is required to set fields")
@@ -72,6 +73,7 @@ func IterateFields(strct any, callback FieldCallback, convert bool, convertToPtr
 
 	case chain.equalTo(reflect.Ptr, reflect.Struct):
 		strType = fmt.Sprintf("%T", reflect.Zero(reflectVal.Elem().Type()).Interface())
+
 		for i := 0; i < reflectVal.Elem().Type().NumField(); i++ {
 			if newVal, set := callback(reflectVal.Elem().Type().Field(i), valueFromField(reflectVal.Elem(), i)); set {
 				f := reflectVal.Elem().Field(i)
@@ -108,9 +110,11 @@ func IterateFields(strct any, callback FieldCallback, convert bool, convertToPtr
 		v := reflectVal.Elem()
 		tmp := reflect.New(v.Elem().Type())
 		tmp.Elem().Set(v.Elem())
+
 		if err := IterateFields(tmp.Interface(), callback, convert, convertToPtr); err != nil {
 			return err
 		}
+
 		v.Set(tmp.Elem())
 
 	default:
