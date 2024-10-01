@@ -28,7 +28,7 @@ import (
 )
 
 type config struct {
-	setter            func(_ Path, value any) (_ any, ok bool)
+	setter            func(_ Path, value any) (_ any, set bool)
 	getter            func(_ Path, value any)
 	prefillNilStructs bool
 	convertTypes      bool
@@ -118,16 +118,25 @@ func iterate(strct any, cfg *config, path []reflect.StructField) error {
 		value, valueHasChanged = trySetValue(f, value, cfg, path)
 
 		if cfg.recursive && isStructOrNonNilStructPtr(f.Type, value) {
-			original := value
+			// TODO add tests with setting nested fields
+			cpCfg := *cfg
+			if cpCfg.setter != nil {
+				cpCfg.setter = func(p Path, value any) (_ any, set bool) {
+					defer func() {
+						if set {
+							valueHasChanged = true
+						}
+					}()
 
-			if err := iterate(&value, cfg, append(path, f)); err != nil {
+					return cfg.setter(p, value)
+				}
+			}
+
+			if err := iterate(&value, &cpCfg, append(path, f)); err != nil {
 				finalErr = fmt.Errorf("%s: %w", f.Name, err)
 
 				return intReflect.FieldCallbackResultStop()
 			}
-
-			// TODO do not use DeepEqual, return in the result whether the value has changed
-			valueHasChanged = valueHasChanged || !reflect.DeepEqual(original, value)
 		}
 
 		if valueHasChanged {
