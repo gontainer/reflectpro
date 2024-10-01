@@ -119,7 +119,7 @@ func IterateFields(strct any, callback FieldCallback, convert bool, convertToPtr
 	return nil
 }
 
-func valueFromField(strct reflect.Value, i int) any {
+func valueFromField(strct reflect.Value, i int) any { //nolint:ireturn
 	f := strct.Field(i)
 
 	if !f.CanSet() { // handle unexported fields
