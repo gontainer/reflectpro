@@ -42,6 +42,7 @@ func IterateFields(strct any, callback FieldCallback, convert bool, convertToPtr
 			if strType != "" {
 				err = fmt.Errorf("%s: %w", strType, err)
 			}
+
 			err = fmt.Errorf("IterateFields: %w", err)
 		}
 	}()

@@ -30,6 +30,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+//nolint:lll
 func TestIterateFields(t *testing.T) {
 	t.Parallel()
 
