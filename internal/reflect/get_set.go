@@ -124,40 +124,9 @@ func Set(strct any, field string, val any, convert bool) (err error) {
 		return err
 	}
 
-	reflectVal := reflect.ValueOf(strct)
-
-	chain, err := ValueToKindChain(reflectVal)
+	reflectVal, chain, err := ReducedValueOf(strct)
 	if err != nil {
 		return err
-	}
-
-	/*
-		removes prepending duplicate Ptr & Interface elements
-		e.g.:
-			s := &struct{ val int }{}
-			Set(&s, ... // chain == {Ptr, Ptr, Struct}
-
-		or:
-			var s any = &struct{ val int }{}
-			var s2 any = &s
-			var s3 any = &s
-			Set(&s3, ... // chain == {Ptr, Interface, Ptr, Interface, Ptr, Interface, Struct}
-	*/
-	for {
-		switch {
-		case chain.Prefixed(reflect.Ptr, reflect.Ptr):
-			reflectVal = reflectVal.Elem()
-			chain = chain[1:]
-
-			continue
-		case chain.Prefixed(reflect.Ptr, reflect.Interface, reflect.Ptr):
-			reflectVal = reflectVal.Elem().Elem()
-			chain = chain[2:]
-
-			continue
-		}
-
-		break
 	}
 
 	switch {

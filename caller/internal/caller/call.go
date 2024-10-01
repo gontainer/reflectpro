@@ -147,7 +147,7 @@ func validateAndForceCallMethod(
 		return nil, fmt.Errorf("expected %s, %T given", reflect.Ptr.String(), object)
 	}
 
-	chain, err := intReflect.ValueToKindChain(val)
+	val, chain, err := intReflect.ReducedValue(val)
 	if err != nil {
 		return nil, err
 	}
