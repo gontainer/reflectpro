@@ -113,9 +113,9 @@ func iterate(strct any, cfg *config, path []reflect.StructField) error {
 			cfg.getter(append(path, f), value)
 		}
 
-		var setterHasBeenTriggered bool
+		var valueHasChanged bool
 
-		value, setterHasBeenTriggered = trySetValue(f, value, cfg, path)
+		value, valueHasChanged = trySetValue(f, value, cfg, path)
 
 		if cfg.recursive && isStructOrNonNilStructPtr(f.Type, value) {
 			original := value
@@ -126,12 +126,10 @@ func iterate(strct any, cfg *config, path []reflect.StructField) error {
 				return intReflect.FieldCallbackResultStop()
 			}
 
-			if !reflect.DeepEqual(original, value) {
-				setterHasBeenTriggered = true
-			}
+			valueHasChanged = valueHasChanged || !reflect.DeepEqual(original, value)
 		}
 
-		if setterHasBeenTriggered {
+		if valueHasChanged {
 			return intReflect.FieldCallbackResultSet(value)
 		}
 
