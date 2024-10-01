@@ -27,32 +27,32 @@ import (
 )
 
 type FieldCallbackResult struct {
-	value     any
-	set       bool
-	continue_ bool
+	value any
+	set   bool
+	stop  bool
 }
 
 func FieldCallbackResultSet(value any) FieldCallbackResult {
 	return FieldCallbackResult{
-		value:     value,
-		set:       true,
-		continue_: true,
+		value: value,
+		set:   true,
+		stop:  false,
 	}
 }
 
 func FieldCallbackResultDontSet() FieldCallbackResult {
 	return FieldCallbackResult{
-		value:     nil,
-		set:       false,
-		continue_: true,
+		value: nil,
+		set:   false,
+		stop:  false,
 	}
 }
 
 func FieldCallbackResultStop() FieldCallbackResult {
 	return FieldCallbackResult{
-		value:     nil,
-		set:       false,
-		continue_: false,
+		value: nil,
+		set:   false,
+		stop:  true,
 	}
 }
 
@@ -93,7 +93,7 @@ func IterateFields(strct any, callback FieldCallback, convert bool, convertToPtr
 				return fmt.Errorf("pointer is required to set fields")
 			}
 
-			if !result.continue_ {
+			if result.stop {
 				return nil
 			}
 		}
@@ -135,7 +135,7 @@ func IterateFields(strct any, callback FieldCallback, convert bool, convertToPtr
 				f.Set(newRefVal)
 			}
 
-			if !result.continue_ {
+			if result.stop {
 				return nil
 			}
 		}
@@ -152,15 +152,15 @@ func IterateFields(strct any, callback FieldCallback, convert bool, convertToPtr
 		newCallback := func(f reflect.StructField, value any) FieldCallbackResult {
 			if stop {
 				return FieldCallbackResult{
-					value:     nil,
-					set:       false,
-					continue_: false,
+					value: nil,
+					set:   false,
+					stop:  true,
 				}
 			}
 
 			result := callback(f, value)
 
-			if !result.continue_ {
+			if result.stop {
 				stop = true
 			}
 
