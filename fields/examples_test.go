@@ -198,7 +198,7 @@ func ExampleConvertToPointers() {
 	// 1m0s
 }
 
-func ExampleReadJSON() {
+func Example_readJSON() {
 	var person struct {
 		Firstname string `json:"firstname"`
 		Lastname  string `json:"lastname"`
@@ -215,6 +215,7 @@ func ExampleReadJSON() {
 	"bio": "bio..."
 }`
 	var data map[string]any
+
 	_ = json.Unmarshal([]byte(js), &data)
 
 	// populate the data from JSON to the `person` variable,
