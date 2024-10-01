@@ -80,6 +80,8 @@ func setValueByFieldIndex(ptrStruct any, fieldIndex int, value any) {
 }
 
 func newXXWithBlankValues(t *testing.T, first int, second string) *XX {
+	t.Helper()
+
 	x := XX{}
 	setValueByFieldIndex(&x, 0, first)
 	setValueByFieldIndex(&x, 1, second)
