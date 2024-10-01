@@ -24,8 +24,8 @@ import (
 	"reflect"
 )
 
-func reducedStructValueOf(strct any) (reflect.Value, kindChain, error) {
-	reflectVal := reflect.ValueOf(strct)
+func ReducedValueOf(val any) (reflect.Value, kindChain, error) {
+	reflectVal := reflect.ValueOf(val)
 
 	chain, err := ValueToKindChain(reflectVal)
 	if err != nil {

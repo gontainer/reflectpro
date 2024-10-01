@@ -77,7 +77,7 @@ func IterateFields(strct any, callback FieldCallback, convert bool, convertToPtr
 		}
 	}()
 
-	reflectVal, chain, err := reducedStructValueOf(strct)
+	reflectVal, chain, err := ReducedValueOf(strct)
 	if err != nil {
 		return err
 	}

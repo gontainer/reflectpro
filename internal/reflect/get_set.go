@@ -124,7 +124,7 @@ func Set(strct any, field string, val any, convert bool) (err error) {
 		return err
 	}
 
-	reflectVal, chain, err := reducedStructValueOf(strct)
+	reflectVal, chain, err := ReducedValueOf(strct)
 	if err != nil {
 		return err
 	}
@@ -213,6 +213,7 @@ func ValueToKindChain(v reflect.Value) (kindChain, error) { //nolint // unexport
 	r = make(kindChain, 0, 5) //nolint:gomnd
 	ptrs := make(map[uintptr]struct{})
 
+	// TODO use ReducedValueOf
 	for {
 		if v.Kind() == reflect.Ptr && !v.IsNil() {
 			ptr := v.Elem().UnsafeAddr()
