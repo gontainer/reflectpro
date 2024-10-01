@@ -28,6 +28,12 @@ import (
 
 type FieldCallback = func(_ reflect.StructField, value any) (_ any, set bool)
 
+// IterateFields traverses the fields of a struct, applying the callback function.
+// Parameters:
+//   - strct: The struct to iterate over
+//   - callback: Function to call for each field
+//   - convert: If true, attempts type conversion
+//   - convertToPtr: If true, converts values returned by the callback to pointers when required
 func IterateFields(strct any, callback FieldCallback, convert bool, convertToPtr bool) (err error) {
 	strType := ""
 
