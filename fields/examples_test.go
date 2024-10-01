@@ -214,6 +214,7 @@ func Example_readJSON() {
 	"age": 30,
 	"bio": "bio..."
 }`
+
 	var data map[string]any
 
 	_ = json.Unmarshal([]byte(js), &data)
