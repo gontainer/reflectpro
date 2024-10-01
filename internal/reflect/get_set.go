@@ -131,7 +131,7 @@ func Set(strct any, field string, val any, convert bool) (err error) {
 
 	switch {
 	// s := struct{ val int }{}
-	// set(&s...
+	// Set(&s...
 	case chain.equalTo(reflect.Ptr, reflect.Struct):
 		return setOnValue(
 			reflectVal.Elem(),
@@ -141,7 +141,7 @@ func Set(strct any, field string, val any, convert bool) (err error) {
 		)
 
 	// var s any = struct{ val int }{}
-	// set(&s...
+	// Set(&s...
 	case chain.equalTo(reflect.Ptr, reflect.Interface, reflect.Struct):
 		v := reflectVal.Elem()
 		tmp := reflect.New(v.Elem().Type()).Elem()
@@ -213,7 +213,6 @@ func ValueToKindChain(v reflect.Value) (kindChain, error) { //nolint // unexport
 	r = make(kindChain, 0, 5) //nolint:gomnd
 	ptrs := make(map[uintptr]struct{})
 
-	// TODO use ReducedValueOf
 	for {
 		if v.Kind() == reflect.Ptr && !v.IsNil() {
 			ptr := v.Elem().UnsafeAddr()

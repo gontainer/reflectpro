@@ -272,7 +272,7 @@ func TestSet(t *testing.T) {
 		assert.NoError(t, reflect.Set(&p, "Name", "Jane", false))
 		assert.Equal(t, person{Name: "Jane"}, p)
 	})
-	t.Run("var a any = struct{}; a2 := &a; setter.set(&a2...", func(t *testing.T) {
+	t.Run("var a any = struct{}; a2 := &a; setter.Set(&a2...", func(t *testing.T) {
 		t.Parallel()
 
 		var p any = person{}
@@ -280,7 +280,7 @@ func TestSet(t *testing.T) {
 		assert.NoError(t, reflect.Set(&p2, "Name", "Jane", false))
 		assert.Equal(t, person{Name: "Jane"}, p)
 	})
-	t.Run("var a1 any = struct{}; var a2 any = &a1; var a3 any = &a2; ...; setter.set(&aN...", func(t *testing.T) {
+	t.Run("var a1 any = struct{}; var a2 any = &a1; var a3 any = &a2; ...; setter.Set(&aN...", func(t *testing.T) {
 		t.Parallel()
 
 		var p any = person{}

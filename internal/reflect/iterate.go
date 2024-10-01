@@ -133,6 +133,7 @@ func valueFromField(strct reflect.Value, i int) any { //nolint:ireturn
 	return f.Interface()
 }
 
+//nolint:revive
 func iterateStruct(reflectVal reflect.Value, callback FieldCallback, convert bool, convertToPtr bool) error {
 	for i := 0; i < reflectVal.Type().NumField(); i++ {
 		result := callback(reflectVal.Type().Field(i), valueFromField(reflectVal, i))
@@ -192,7 +193,12 @@ func iteratePtrStruct(reflectVal reflect.Value, callback FieldCallback, convert 
 	return nil
 }
 
-func iteratePtrInterfaceStruct(reflectVal reflect.Value, callback FieldCallback, convert bool, convertToPtr bool) error {
+func iteratePtrInterfaceStruct(
+	reflectVal reflect.Value,
+	callback FieldCallback,
+	convert bool,
+	convertToPtr bool,
+) error {
 	v := reflectVal.Elem()
 	tmp := reflect.New(v.Elem().Type())
 	tmp.Elem().Set(v.Elem())
