@@ -99,7 +99,6 @@ func Iterate(strct any, opts ...Option) (err error) {
 	return iterate(strct, newConfig(opts...), nil)
 }
 
-//nolint:gocognit
 func iterate(strct any, cfg *config, path []reflect.StructField) error {
 	var fn intReflect.FieldCallback
 
@@ -117,38 +116,19 @@ func iterate(strct any, cfg *config, path []reflect.StructField) error {
 
 		setterHasBeenTriggered := false
 
-		// call setter
-		if cfg.setter != nil {
-			newVal, ok := cfg.setter(append(path, f), value)
-			if ok {
-				value, setterHasBeenTriggered = newVal, true
+		value, setterHasBeenTriggered = trySetValue(f, value, cfg, path)
+
+		if cfg.recursive && isStructOrNonNilStructPtr(f.Type, value) {
+			original := value
+
+			if err := iterate(&value, cfg, append(path, f)); err != nil {
+				finalErr = fmt.Errorf("%s: %w", f.Name, err)
+
+				return nil, false
 			}
-		}
 
-		// set pointer to a zero-value
-		if !setterHasBeenTriggered &&
-			cfg.prefillNilStructs &&
-			f.Type.Kind() == reflect.Ptr && f.Type.Elem().Kind() == reflect.Struct &&
-			reflect.ValueOf(value).IsZero() {
-			value, setterHasBeenTriggered = reflect.New(f.Type.Elem()).Interface(), true
-		}
-
-		//nolint:gocognit
-		if cfg.recursive {
-			if f.Type.Kind() == reflect.Struct || // value is a struct
-				(f.Type.Kind() == reflect.Ptr && f.Type.Elem().Kind() == reflect.Struct && !reflect.ValueOf(value).IsZero()) { // value is a pointer to a non-nil struct
-
-				original := value
-
-				if err := iterate(&value, cfg, append(path, f)); err != nil {
-					finalErr = fmt.Errorf("%s: %w", f.Name, err)
-
-					return nil, false
-				}
-
-				if !reflect.DeepEqual(original, value) {
-					setterHasBeenTriggered = true
-				}
+			if !reflect.DeepEqual(original, value) {
+				setterHasBeenTriggered = true
 			}
 		}
 
@@ -175,4 +155,28 @@ func iterate(strct any, cfg *config, path []reflect.StructField) error {
 	}
 
 	return nil
+}
+
+func trySetValue(f reflect.StructField, value any, cfg *config, path []reflect.StructField) (_ any, set bool) {
+	// Call setter
+	if cfg.setter != nil {
+		if newVal, ok := cfg.setter(append(path, f), value); ok {
+			return newVal, true
+		}
+	}
+
+	// Set pointer to a zero-value struct
+	if cfg.prefillNilStructs &&
+		f.Type.Kind() == reflect.Ptr && f.Type.Elem().Kind() == reflect.Struct &&
+		reflect.ValueOf(value).IsZero() {
+		return reflect.New(f.Type.Elem()).Interface(), true
+	}
+
+	return value, false
+}
+
+// isStructOrNonNilStructPtr checks if the given type is a struct or a non-nil pointer to a struct.
+func isStructOrNonNilStructPtr(t reflect.Type, v any) bool {
+	return t.Kind() == reflect.Struct ||
+		(t.Kind() == reflect.Ptr && t.Elem().Kind() == reflect.Struct && !reflect.ValueOf(v).IsZero())
 }
