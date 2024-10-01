@@ -82,96 +82,25 @@ func IterateFields(strct any, callback FieldCallback, convert bool, convertToPtr
 		return err
 	}
 
+	var iterator func(
+		reflectVal reflect.Value,
+		callback FieldCallback,
+		convert bool,
+		convertToPtr bool,
+	) error
+
 	switch {
 	case chain.equalTo(reflect.Struct):
 		strType = fmt.Sprintf("%T", reflect.Zero(reflectVal.Type()).Interface())
-
-		for i := 0; i < reflectVal.Type().NumField(); i++ {
-			result := callback(reflectVal.Type().Field(i), valueFromField(reflectVal, i))
-
-			if result.set {
-				return fmt.Errorf("pointer is required to set fields")
-			}
-
-			if result.stop {
-				return nil
-			}
-		}
+		iterator = iterateStruct
 
 	case chain.equalTo(reflect.Ptr, reflect.Struct):
 		strType = fmt.Sprintf("%T", reflect.Zero(reflectVal.Elem().Type()).Interface())
-
-		for i := 0; i < reflectVal.Elem().Type().NumField(); i++ {
-			result := callback(reflectVal.Elem().Type().Field(i), valueFromField(reflectVal.Elem(), i))
-
-			if result.set {
-				f := reflectVal.Elem().Field(i)
-				if !f.CanSet() {
-					f = reflect.NewAt(f.Type(), unsafe.Pointer(f.UnsafeAddr())).Elem()
-				}
-
-				newVal := result.value
-
-				newRefVal, err := func() (reflect.Value, error) {
-					if convertToPtr && f.Kind() == reflect.Ptr && (newVal != nil || reflect.ValueOf(newVal).Kind() != reflect.Ptr) {
-						val, err := ValueOf(newVal, f.Type().Elem(), convert)
-						if err != nil {
-							return reflect.Value{}, err
-						}
-
-						ptr := reflect.New(val.Type())
-						ptr.Elem().Set(val)
-
-						return ptr, nil
-					}
-
-					return ValueOf(newVal, f.Type(), convert)
-				}()
-
-				if err != nil {
-					return fmt.Errorf("field %d %+q: %w", i, reflectVal.Elem().Type().Field(i).Name, err)
-				}
-
-				f.Set(newRefVal)
-			}
-
-			if result.stop {
-				return nil
-			}
-		}
+		iterator = iteratePtrStruct
 
 	case chain.equalTo(reflect.Ptr, reflect.Interface, reflect.Struct):
 		strType = fmt.Sprintf("%T", reflect.Zero(reflectVal.Type()).Interface())
-		v := reflectVal.Elem()
-		tmp := reflect.New(v.Elem().Type())
-		tmp.Elem().Set(v.Elem())
-
-		// TODO find a better solution
-		stop := false
-
-		newCallback := func(f reflect.StructField, value any) FieldCallbackResult {
-			if stop {
-				return FieldCallbackResult{
-					value: nil,
-					set:   false,
-					stop:  true,
-				}
-			}
-
-			result := callback(f, value)
-
-			if result.stop {
-				stop = true
-			}
-
-			return result
-		}
-
-		if err := IterateFields(tmp.Interface(), newCallback, convert, convertToPtr); err != nil {
-			return err
-		}
-
-		v.Set(tmp.Elem())
+		iterator = iteratePtrInterfaceStruct
 
 	default:
 		if err := ptrToNilStructError(strct); err != nil {
@@ -179,6 +108,10 @@ func IterateFields(strct any, callback FieldCallback, convert bool, convertToPtr
 		}
 
 		return fmt.Errorf("expected struct or pointer to struct, %T given", strct)
+	}
+
+	if err := iterator(reflectVal, callback, convert, convertToPtr); err != nil {
+		return err
 	}
 
 	return nil
@@ -198,4 +131,106 @@ func valueFromField(strct reflect.Value, i int) any { //nolint:ireturn
 	}
 
 	return f.Interface()
+}
+
+func iterateStruct(reflectVal reflect.Value, callback FieldCallback, convert bool, convertToPtr bool) error {
+	for i := 0; i < reflectVal.Type().NumField(); i++ {
+		result := callback(reflectVal.Type().Field(i), valueFromField(reflectVal, i))
+
+		if result.set {
+			return fmt.Errorf("pointer is required to set fields")
+		}
+
+		if result.stop {
+			return nil
+		}
+	}
+
+	return nil
+}
+
+func iteratePtrStruct(reflectVal reflect.Value, callback FieldCallback, convert bool, convertToPtr bool) error {
+	for i := 0; i < reflectVal.Elem().Type().NumField(); i++ {
+		result := callback(reflectVal.Elem().Type().Field(i), valueFromField(reflectVal.Elem(), i))
+
+		if result.set {
+			f := reflectVal.Elem().Field(i)
+			if !f.CanSet() {
+				f = reflect.NewAt(f.Type(), unsafe.Pointer(f.UnsafeAddr())).Elem()
+			}
+
+			newVal := result.value
+
+			newRefVal, err := func() (reflect.Value, error) {
+				if convertToPtr && f.Kind() == reflect.Ptr && (newVal != nil || reflect.ValueOf(newVal).Kind() != reflect.Ptr) {
+					val, err := ValueOf(newVal, f.Type().Elem(), convert)
+					if err != nil {
+						return reflect.Value{}, err
+					}
+
+					ptr := reflect.New(val.Type())
+					ptr.Elem().Set(val)
+
+					return ptr, nil
+				}
+
+				return ValueOf(newVal, f.Type(), convert)
+			}()
+
+			if err != nil {
+				return fmt.Errorf("field %d %+q: %w", i, reflectVal.Elem().Type().Field(i).Name, err)
+			}
+
+			f.Set(newRefVal)
+		}
+
+		if result.stop {
+			return nil
+		}
+	}
+
+	return nil
+}
+
+func iteratePtrInterfaceStruct(reflectVal reflect.Value, callback FieldCallback, convert bool, convertToPtr bool) error {
+	v := reflectVal.Elem()
+	tmp := reflect.New(v.Elem().Type())
+	tmp.Elem().Set(v.Elem())
+
+	var (
+		stop = false
+		set  = false
+	)
+
+	newCallback := func(f reflect.StructField, value any) FieldCallbackResult {
+		if stop {
+			return FieldCallbackResult{
+				value: nil,
+				set:   false,
+				stop:  true,
+			}
+		}
+
+		result := callback(f, value)
+
+		if result.stop {
+			stop = true
+		}
+
+		if result.set {
+			set = true
+		}
+
+		return result
+	}
+
+	if err := IterateFields(tmp.Interface(), newCallback, convert, convertToPtr); err != nil {
+		return err
+	}
+
+	if set {
+		v.Set(tmp.Elem())
+	}
+
+	return nil
 }

@@ -126,6 +126,7 @@ func iterate(strct any, cfg *config, path []reflect.StructField) error {
 				return intReflect.FieldCallbackResultStop()
 			}
 
+			// TODO do not use DeepEqual, return in the result whether the value has changed
 			valueHasChanged = valueHasChanged || !reflect.DeepEqual(original, value)
 		}
 
