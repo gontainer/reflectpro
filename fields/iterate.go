@@ -45,9 +45,11 @@ func newConfig(opts ...Option) *config {
 		convertToPtr:      false,
 		recursive:         false,
 	}
+
 	for _, o := range opts {
 		o(c)
 	}
+
 	return c
 }
 
@@ -114,7 +116,7 @@ func iterate(strct any, cfg *config, path []reflect.StructField) error {
 			cfg.getter(append(path, f), value)
 		}
 
-		setterHasBeenTriggered := false
+		var setterHasBeenTriggered bool
 
 		value, setterHasBeenTriggered = trySetValue(f, value, cfg, path)
 
