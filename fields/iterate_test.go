@@ -327,6 +327,13 @@ func TestIterate(t *testing.T) {
 					XX: newXXWithBlankValues(t, 7, "seven"),
 				},
 			},
+			{
+				name:    "invalid input",
+				options: nil,
+				input:   100,
+				output:  nil,
+				error:   "some error",
+			},
 		}
 
 		for _, s := range scenarios {
