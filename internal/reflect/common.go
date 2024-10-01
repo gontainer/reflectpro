@@ -24,6 +24,7 @@ import (
 	"reflect"
 )
 
+//nolint:revive
 func ReducedValue(val reflect.Value) (reflect.Value, kindChain, error) {
 	chain, err := ValueToKindChain(val)
 	if err != nil {
@@ -62,6 +63,7 @@ func ReducedValue(val reflect.Value) (reflect.Value, kindChain, error) {
 	return val, chain, nil
 }
 
+//nolint:revive
 func ReducedValueOf(val any) (reflect.Value, kindChain, error) {
 	return ReducedValue(reflect.ValueOf(val))
 }
