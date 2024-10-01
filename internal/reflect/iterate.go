@@ -52,22 +52,6 @@ func IterateFields(strct any, callback FieldCallback, convert bool, convertToPtr
 		return err
 	}
 
-	valueFromField := func(strct reflect.Value, i int) any {
-		f := strct.Field(i)
-
-		if !f.CanSet() { // handle unexported fields
-			if !f.CanAddr() {
-				tmpReflectVal := reflect.New(strct.Type()).Elem()
-				tmpReflectVal.Set(strct)
-				f = tmpReflectVal.Field(i)
-			}
-
-			f = reflect.NewAt(f.Type(), unsafe.Pointer(f.UnsafeAddr())).Elem()
-		}
-
-		return f.Interface()
-	}
-
 	switch {
 	case chain.equalTo(reflect.Struct):
 		strType = fmt.Sprintf("%T", reflect.Zero(reflectVal.Type()).Interface())
@@ -133,4 +117,20 @@ func IterateFields(strct any, callback FieldCallback, convert bool, convertToPtr
 	}
 
 	return nil
+}
+
+func valueFromField(strct reflect.Value, i int) any {
+	f := strct.Field(i)
+
+	if !f.CanSet() { // handle unexported fields
+		if !f.CanAddr() {
+			tmpReflectVal := reflect.New(strct.Type()).Elem()
+			tmpReflectVal.Set(strct)
+			f = tmpReflectVal.Field(i)
+		}
+
+		f = reflect.NewAt(f.Type(), unsafe.Pointer(f.UnsafeAddr())).Elem()
+	}
+
+	return f.Interface()
 }
