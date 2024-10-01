@@ -124,7 +124,7 @@ func Set(strct any, field string, val any, convert bool) (err error) {
 		return err
 	}
 
-	reflectVal, chain, err := valueToReducedStructChain(strct)
+	reflectVal, chain, err := reducedStructValueOf(strct)
 	if err != nil {
 		return err
 	}
