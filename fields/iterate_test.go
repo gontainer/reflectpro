@@ -92,6 +92,7 @@ func newXXWithBlankValues(t *testing.T, first int, second string) *XX {
 	return &x
 }
 
+//nolint:gocognit,goconst,lll
 func TestIterate(t *testing.T) {
 	t.Parallel()
 
@@ -106,7 +107,7 @@ func TestIterate(t *testing.T) {
 			{
 				name: "Person OK",
 				options: []fields.Option{
-					fields.Setter(func(_ fields.Path, value any) (_ any, set bool) {
+					fields.Setter(func(_ fields.Path, _ any) (_ any, set bool) {
 						return "Jane", true
 					}),
 				},
@@ -119,7 +120,7 @@ func TestIterate(t *testing.T) {
 			{
 				name: "Person OK (convert types)",
 				options: []fields.Option{
-					fields.Setter(func(_ fields.Path, value any) (_ any, set bool) {
+					fields.Setter(func(_ fields.Path, _ any) (_ any, set bool) {
 						return CustomString("Jane"), true
 					}),
 					fields.ConvertTypes(true),
@@ -280,6 +281,7 @@ func TestIterate(t *testing.T) {
 							return &XX{}, true
 						}
 
+						//nolint:revive,exhaustive
 						if path.EqualNames("XX", "_") {
 							switch path[len(path)-1].Type.Kind() {
 							case reflect.Int:
@@ -306,6 +308,7 @@ func TestIterate(t *testing.T) {
 							return &XX{}, true
 						}
 
+						//nolint:revive,exhaustive
 						if path.EqualNames("XX", "_") {
 							switch path[len(path)-1].Type.Kind() {
 							case reflect.Int:

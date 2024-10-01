@@ -46,7 +46,7 @@ type TrainingPlan struct {
 	Tuesday Exercise
 }
 
-func ExampleSet() {
+func ExampleIterate_set() {
 	p := TrainingPlan{}
 
 	_ = fields.Iterate(
@@ -86,7 +86,7 @@ type Phone struct {
 	os string
 }
 
-func ExampleSetUnexported() {
+func ExampleIterate_setUnexported() {
 	p := Phone{}
 	_ = fields.Iterate(
 		&p,
@@ -150,7 +150,7 @@ type Company struct {
 	CTO CTO
 }
 
-func ExampleGetter() {
+func ExampleIterate_get() {
 	c := Company{
 		CTO: CTO{
 			Salary: 1000000,
@@ -247,10 +247,12 @@ func ExampleReadJSON() {
 	// {Firstname:Jane Lastname:Doe Age:30 Bio:}
 }
 
-func ExampleBlank() {
+func ExampleIterate_blank() {
 	var data struct {
 		_ int // fields.Iterate can access blank identifier
 	}
+
+	fmt.Println(data)
 
 	_ = fields.Iterate(&data, fields.Setter(func(path fields.Path, value any) (_ any, set bool) {
 		if path.EqualNames("_") {
@@ -263,5 +265,6 @@ func ExampleBlank() {
 	fmt.Println(data)
 
 	// Output:
+	// {0}
 	// {10}
 }

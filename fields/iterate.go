@@ -99,6 +99,7 @@ func Iterate(strct any, opts ...Option) (err error) {
 	return iterate(strct, newConfig(opts...), nil)
 }
 
+//nolint:gocognit
 func iterate(strct any, cfg *config, path []reflect.StructField) error {
 	var fn intReflect.FieldCallback
 
@@ -132,6 +133,7 @@ func iterate(strct any, cfg *config, path []reflect.StructField) error {
 			value, setterHasBeenTriggered = reflect.New(f.Type.Elem()).Interface(), true
 		}
 
+		//nolint:gocognit
 		if cfg.recursive {
 			if f.Type.Kind() == reflect.Struct || // value is a struct
 				(f.Type.Kind() == reflect.Ptr && f.Type.Elem().Kind() == reflect.Struct && !reflect.ValueOf(value).IsZero()) { // value is a pointer to a non-nil struct
