@@ -160,7 +160,6 @@ func iterate(strct any, cfg *config, path []reflect.StructField) error {
 	return nil
 }
 
-//nolint:ireturn
 func trySetValue(f reflect.StructField, value any, cfg *config, path []reflect.StructField) (_ any, set bool) {
 	// Call setter
 	if cfg.setter != nil {
