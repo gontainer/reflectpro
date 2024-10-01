@@ -24,10 +24,8 @@ import (
 	"reflect"
 )
 
-func ReducedValueOf(val any) (reflect.Value, kindChain, error) {
-	reflectVal := reflect.ValueOf(val)
-
-	chain, err := ValueToKindChain(reflectVal)
+func ReducedValue(val reflect.Value) (reflect.Value, kindChain, error) {
+	chain, err := ValueToKindChain(val)
 	if err != nil {
 		return reflect.Value{}, nil, err
 	}
@@ -47,12 +45,12 @@ func ReducedValueOf(val any) (reflect.Value, kindChain, error) {
 	for {
 		switch {
 		case chain.Prefixed(reflect.Ptr, reflect.Ptr):
-			reflectVal = reflectVal.Elem()
+			val = val.Elem()
 			chain = chain[1:]
 
 			continue
 		case chain.Prefixed(reflect.Ptr, reflect.Interface, reflect.Ptr):
-			reflectVal = reflectVal.Elem().Elem()
+			val = val.Elem().Elem()
 			chain = chain[2:]
 
 			continue
@@ -61,5 +59,9 @@ func ReducedValueOf(val any) (reflect.Value, kindChain, error) {
 		break
 	}
 
-	return reflectVal, chain, nil
+	return val, chain, nil
+}
+
+func ReducedValueOf(val any) (reflect.Value, kindChain, error) {
+	return ReducedValue(reflect.ValueOf(val))
 }
