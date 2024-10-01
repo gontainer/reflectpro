@@ -332,7 +332,7 @@ func TestIterate(t *testing.T) {
 				options: nil,
 				input:   100,
 				output:  nil,
-				error:   "some error",
+				error:   "fields.Iterate: IterateFields: expected struct or pointer to struct, *interface {} given",
 			},
 		}
 
