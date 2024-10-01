@@ -281,7 +281,7 @@ func TestIterate(t *testing.T) {
 							return &XX{}, true
 						}
 
-						//nolint:revive,exhaustive
+						//nolint:exhaustive
 						if path.EqualNames("XX", "_") {
 							switch path[len(path)-1].Type.Kind() {
 							case reflect.Int:
@@ -308,7 +308,7 @@ func TestIterate(t *testing.T) {
 							return &XX{}, true
 						}
 
-						//nolint:revive,exhaustive
+						//nolint:exhaustive
 						if path.EqualNames("XX", "_") {
 							switch path[len(path)-1].Type.Kind() {
 							case reflect.Int:
