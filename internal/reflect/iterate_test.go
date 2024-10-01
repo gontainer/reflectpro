@@ -34,7 +34,7 @@ import (
 func TestIterateFields(t *testing.T) {
 	t.Parallel()
 
-	t.Run("Set", func(t *testing.T) {
+	t.Run("set", func(t *testing.T) {
 		t.Parallel()
 
 		scenarios := []struct {
@@ -48,16 +48,16 @@ func TestIterateFields(t *testing.T) {
 		}{
 			{
 				strct: person{},
-				callback: func(f stdReflect.StructField, value any) (_ any, set bool) {
+				callback: func(f stdReflect.StructField, value any) reflect.FieldCallbackResult {
 					if f.Name == "Name" {
-						return "Jane", true
+						return reflect.FieldCallbackResultSet("Jane")
 					}
 
 					if f.Name == "age" {
-						return uint(30), true
+						return reflect.FieldCallbackResultSet(uint(30))
 					}
 
-					return nil, false
+					return reflect.FieldCallbackResultDontSet()
 				},
 				convert:      true,
 				convertToPtr: false,
@@ -68,16 +68,16 @@ func TestIterateFields(t *testing.T) {
 			},
 			{
 				strct: person{},
-				callback: func(f stdReflect.StructField, value any) (_ any, set bool) {
+				callback: func(f stdReflect.StructField, value any) reflect.FieldCallbackResult {
 					if f.Name == "Name" {
-						return "Jane", true
+						return reflect.FieldCallbackResultSet("Jane")
 					}
 
 					if f.Name == "age" {
-						return uint(30), true
+						return reflect.FieldCallbackResultSet(uint(30))
 					}
 
-					return nil, false
+					return reflect.FieldCallbackResultDontSet()
 				},
 				convert:      false,
 				convertToPtr: false,

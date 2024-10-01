@@ -152,7 +152,7 @@ func validateAndForceCallMethod(
 		return nil, err
 	}
 
-	// see [intReflect.Set]
+	// see [intReflect.set]
 	for {
 		switch {
 		case chain.Prefixed(reflect.Ptr, reflect.Ptr):

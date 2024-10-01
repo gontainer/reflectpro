@@ -131,7 +131,7 @@ func Set(strct any, field string, val any, convert bool) (err error) {
 
 	switch {
 	// s := struct{ val int }{}
-	// Set(&s...
+	// set(&s...
 	case chain.equalTo(reflect.Ptr, reflect.Struct):
 		return setOnValue(
 			reflectVal.Elem(),
@@ -141,7 +141,7 @@ func Set(strct any, field string, val any, convert bool) (err error) {
 		)
 
 	// var s any = struct{ val int }{}
-	// Set(&s...
+	// set(&s...
 	case chain.equalTo(reflect.Ptr, reflect.Interface, reflect.Struct):
 		v := reflectVal.Elem()
 		tmp := reflect.New(v.Elem().Type()).Elem()

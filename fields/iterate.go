@@ -107,11 +107,7 @@ func iterate(strct any, cfg *config, path []reflect.StructField) error {
 
 	var finalErr error
 
-	fn = func(f reflect.StructField, value any) (_ any, set bool) {
-		if finalErr != nil {
-			return nil, false
-		}
-
+	fn = func(f reflect.StructField, value any) intReflect.FieldCallbackResult {
 		// call getter
 		if cfg.getter != nil {
 			cfg.getter(append(path, f), value)
@@ -127,7 +123,7 @@ func iterate(strct any, cfg *config, path []reflect.StructField) error {
 			if err := iterate(&value, cfg, append(path, f)); err != nil {
 				finalErr = fmt.Errorf("%s: %w", f.Name, err)
 
-				return nil, false
+				return intReflect.FieldCallbackResultStop()
 			}
 
 			if !reflect.DeepEqual(original, value) {
@@ -136,10 +132,10 @@ func iterate(strct any, cfg *config, path []reflect.StructField) error {
 		}
 
 		if setterHasBeenTriggered {
-			return value, true
+			return intReflect.FieldCallbackResultSet(value)
 		}
 
-		return nil, false
+		return intReflect.FieldCallbackResultDontSet()
 	}
 
 	err := intReflect.IterateFields(
@@ -176,7 +172,7 @@ func trySetValue( //nolint:ireturn
 		}
 	}
 
-	// Set pointer to a zero-value struct
+	// set pointer to a zero-value struct
 	if cfg.prefillNilStructs &&
 		f.Type.Kind() == reflect.Ptr && f.Type.Elem().Kind() == reflect.Struct &&
 		reflect.ValueOf(value).IsZero() {

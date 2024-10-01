@@ -26,7 +26,37 @@ import (
 	"unsafe"
 )
 
-type FieldCallback = func(_ reflect.StructField, value any) (_ any, set bool)
+type FieldCallbackResult struct {
+	value     any
+	set       bool
+	continue_ bool
+}
+
+func FieldCallbackResultSet(value any) FieldCallbackResult {
+	return FieldCallbackResult{
+		value:     value,
+		set:       true,
+		continue_: true,
+	}
+}
+
+func FieldCallbackResultDontSet() FieldCallbackResult {
+	return FieldCallbackResult{
+		value:     nil,
+		set:       false,
+		continue_: true,
+	}
+}
+
+func FieldCallbackResultStop() FieldCallbackResult {
+	return FieldCallbackResult{
+		value:     nil,
+		set:       false,
+		continue_: false,
+	}
+}
+
+type FieldCallback = func(_ reflect.StructField, value any) FieldCallbackResult
 
 // IterateFields traverses the fields of a struct, applying the callback function.
 // Parameters:
@@ -57,8 +87,14 @@ func IterateFields(strct any, callback FieldCallback, convert bool, convertToPtr
 		strType = fmt.Sprintf("%T", reflect.Zero(reflectVal.Type()).Interface())
 
 		for i := 0; i < reflectVal.Type().NumField(); i++ {
-			if _, set := callback(reflectVal.Type().Field(i), valueFromField(reflectVal, i)); set {
+			result := callback(reflectVal.Type().Field(i), valueFromField(reflectVal, i))
+
+			if result.set {
 				return fmt.Errorf("pointer is required to set fields")
+			}
+
+			if !result.continue_ {
+				return nil
 			}
 		}
 
@@ -66,11 +102,15 @@ func IterateFields(strct any, callback FieldCallback, convert bool, convertToPtr
 		strType = fmt.Sprintf("%T", reflect.Zero(reflectVal.Elem().Type()).Interface())
 
 		for i := 0; i < reflectVal.Elem().Type().NumField(); i++ {
-			if newVal, set := callback(reflectVal.Elem().Type().Field(i), valueFromField(reflectVal.Elem(), i)); set {
+			result := callback(reflectVal.Elem().Type().Field(i), valueFromField(reflectVal.Elem(), i))
+
+			if result.set {
 				f := reflectVal.Elem().Field(i)
 				if !f.CanSet() {
 					f = reflect.NewAt(f.Type(), unsafe.Pointer(f.UnsafeAddr())).Elem()
 				}
+
+				newVal := result.value
 
 				newRefVal, err := func() (reflect.Value, error) {
 					if convertToPtr && f.Kind() == reflect.Ptr && (newVal != nil || reflect.ValueOf(newVal).Kind() != reflect.Ptr) {
@@ -94,6 +134,10 @@ func IterateFields(strct any, callback FieldCallback, convert bool, convertToPtr
 
 				f.Set(newRefVal)
 			}
+
+			if !result.continue_ {
+				return nil
+			}
 		}
 
 	case chain.equalTo(reflect.Ptr, reflect.Interface, reflect.Struct):
@@ -102,7 +146,28 @@ func IterateFields(strct any, callback FieldCallback, convert bool, convertToPtr
 		tmp := reflect.New(v.Elem().Type())
 		tmp.Elem().Set(v.Elem())
 
-		if err := IterateFields(tmp.Interface(), callback, convert, convertToPtr); err != nil {
+		// TODO find a better solution
+		stop := false
+
+		newCallback := func(f reflect.StructField, value any) FieldCallbackResult {
+			if stop {
+				return FieldCallbackResult{
+					value:     nil,
+					set:       false,
+					continue_: false,
+				}
+			}
+
+			result := callback(f, value)
+
+			if !result.continue_ {
+				stop = true
+			}
+
+			return result
+		}
+
+		if err := IterateFields(tmp.Interface(), newCallback, convert, convertToPtr); err != nil {
 			return err
 		}
 

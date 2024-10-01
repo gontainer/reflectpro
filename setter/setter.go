@@ -33,7 +33,7 @@ Unexported fields are supported.
 		Name string
 	}
 	p := Person{}
-	_ = setter.Set(&p, "Name", "Jane", false)
+	_ = setter.set(&p, "Name", "Jane", false)
 	fmt.Println(p) // {Jane}
 */
 func Set(strct any, field string, val any, convert bool) error {

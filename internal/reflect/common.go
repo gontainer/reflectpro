@@ -36,13 +36,13 @@ func reducedStructValueOf(strct any) (reflect.Value, kindChain, error) {
 		removes prepending duplicate [reflect.Ptr] & [reflect.Interface] elements
 		e.g.:
 			s := &struct{ val int }{}
-			Set(&s, ... // chain == {Ptr, Ptr, Struct}
+			set(&s, ... // chain == {Ptr, Ptr, Struct}
 
 		or:
 			var s any = &struct{ val int }{}
 			var s2 any = &s
 			var s3 any = &s
-			Set(&s3, ... // chain == {Ptr, Interface, Ptr, Interface, Ptr, Interface, Struct}
+			set(&s3, ... // chain == {Ptr, Interface, Ptr, Interface, Ptr, Interface, Struct}
 	*/
 	for {
 		switch {
